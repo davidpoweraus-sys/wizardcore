@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeWave Academy - Readable Vaporwave</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ===== READABLE VAPORWAVE DESIGN SYSTEM ===== */
+        :root {
+            /* Softened Vaporwave Colors - Better Contrast */
+            --neon-pink: #FF6EC7;
+            --neon-cyan: #5DFDFF;
+            --neon-purple: #C77DFF;
+            --neon-lavender: #E0AAFF;
+            
+            /* Pastel Accents */
+            --pastel-pink: #FFB5E8;
+            --pastel-purple: #CDB4FF;
+            --pastel-blue: #A0D2FF;
+            --pastel-mint: #A0FFE6;
+            
+            /* Backgrounds - Better Readability */
+            --bg-primary: #0F0A1E;
+            --bg-secondary: #1A1230;
+            --bg-tertiary: #251A3D;
+            --bg-elevated: #2D2149;
+            
+            /* Text Colors - High Contrast */
+            --text-primary: #FFFFFF;
+            --text-secondary: #E0D0FF;
+            --text-tertiary: #B89FE8;
+            --text-muted: #8B7AA8;
+            
+            /* Gradients - Softer */
+            --gradient-sunset: linear-gradient(135deg, #FF6EC7 0%, #FFA07A 50%, #FFD700 100%);
+            --gradient-ocean: linear-gradient(135deg, #5DFDFF 0%, #7B68EE 100%);
+            --gradient-dream: linear-gradient(135deg, #FFB5E8 0%, #C77DFF 50%, #A0D2FF 100%);
+            --gradient-soft: linear-gradient(135deg, #E0AAFF 0%, #5DFDFF 100%);
+            
+            /* Borders */
+            --border-subtle: rgba(197, 125, 255, 0.2);
+            --border-default: rgba(197, 125, 255, 0.3);
+            --border-strong: rgba(197, 125, 255, 0.5);
+            
+            /* Glows - Softer */
+            --glow-pink: 0 0 15px rgba(255, 110, 199, 0.4);
+            --glow-cyan: 0 0 15px rgba(93, 253, 255, 0.4);
+            --glow-purple: 0 0 15px rgba(197, 125, 255, 0.4);
+            
+            /* Code Editor */
+            --code-bg: #1A1230;
+            --code-text: #FFFFFF;
+            --code-comment: #B89FE8;
+            --code-keyword: #FF6EC7;
+            --code-string: #5DFDFF;
+            --code-function: #FFB5E8;
+            --code-number: #A0FFE6;
+            
+            /* Typography - Readable */
+            --font-display: 'Outfit', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            
+            /* Spacing */
+            --space-1: 0.25rem;
+            --space-2: 0.5rem;
+            --space-3: 0.75rem;
+            --space-4: 1rem;
+            --space-5: 1.25rem;
+            --space-6: 1.5rem;
+            --space-8: 2rem;
+            --space-10: 2.5rem;
+            --space-12: 3rem;
+            
+            /* Border Radius - Slightly rounded for readability */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            
+            /* Transitions */
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --duration: 200ms;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow: hidden;
+            position: relative;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Subtle Grid Background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: 
+                repeating-linear-gradient(0deg, rgba(197, 125, 255, 0.03) 0px, transparent 1px, transparent 50px),
+                repeating-linear-gradient(90deg, rgba(197, 125, 255, 0.03) 0px, transparent 1px, transparent 50px);
+            pointer-events: none;
+        }
+
+        /* Soft Ambient Glow */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 110, 199, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(93, 253, 255, 0.06) 0%, transparent 50%);
+            animation: gentleFloat 30s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes gentleFloat {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(20px, -20px); }
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            height: 70px;
+            background: linear-gradient(180deg, rgba(26, 18, 48, 0.95) 0%, rgba(26, 18, 48, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid var(--border-default);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--space-6);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-soft);
+            opacity: 0.5;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-5);
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-soft);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.5px;
+        }
+
+        .menu-button {
+            width: 44px;
+            height: 44px;
+            background: rgba(197, 125, 255, 0.1);
+            border: 2px solid var(--border-default);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--duration) var(--ease-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--neon-lavender);
+        }
+
+        .menu-button:hover {
+            background: rgba(197, 125, 255, 0.2);
+            border-color: var(--neon-lavender);
+            box-shadow: var(--glow-purple);
+            transform: translateY(-2px);
+        }
+
+        .exercise-info h1 {
+            font-family: var(--font-display);
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .exercise-info p {
+            font-size: 0.938rem;
+            color: var(--text-secondary);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-5);
+        }
+
+        .progress-wrapper {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .progress-text {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            width: 150px;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-ocean);
+            width: 33%;
+            transition: width 0.5s var(--ease-smooth);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 0 10px rgba(93, 253, 255, 0.5);
+        }
+
+        .badge {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.813rem;
+            font-weight: 600;
+            background: rgba(197, 125, 255, 0.15);
+            color: var(--neon-lavender);
+            border: 1px solid var(--border-default);
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 420px;
+            background: linear-gradient(180deg, rgba(26, 18, 48, 0.95) 0%, rgba(37, 26, 61, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-default);
+            overflow-y: auto;
+            transition: transform var(--duration) var(--ease-smooth);
+            position: relative;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px;
+            height: 100%;
+            background: var(--gradient-soft);
+            opacity: 0.3;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-420px);
+        }
+
+        .sidebar-content {
+            padding: var(--space-6);
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-6);
+            padding-bottom: var(--space-4);
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .sidebar-title {
+            font-family: var(--font-display);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-title svg {
+            color: var(--neon-cyan);
+        }
+
+        .pin-button {
+            padding: 0.5rem 1rem;
+            background: rgba(197, 125, 255, 0.1);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            font-size: 0.813rem;
+            font-weight: 500;
+            color: var(--neon-lavender);
+            cursor: pointer;
+            transition: all var(--duration) var(--ease-smooth);
+        }
+
+        .pin-button:hover {
+            background: rgba(197, 125, 255, 0.2);
+            border-color: var(--neon-lavender);
+            box-shadow: var(--glow-purple);
+        }
+
+        .pin-button.pinned {
+            background: rgba(197, 125, 255, 0.25);
+            border-color: var(--neon-lavender);
+            box-shadow: var(--glow-purple);
+        }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: linear-gradient(135deg, rgba(197, 125, 255, 0.08) 0%, rgba(93, 253, 255, 0.05) 100%);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-5);
+            margin-bottom: var(--space-5);
+            transition: all var(--duration) var(--ease-smooth);
+        }
+
+        .card:hover {
+            border-color: var(--border-default);
+            box-shadow: 0 8px 25px rgba(197, 125, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            font-family: var(--font-display);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            margin-bottom: var(--space-4);
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--neon-lavender);
+            letter-spacing: 0.5px;
+        }
+
+        .objectives-card {
+            border-left: 3px solid var(--neon-cyan);
+        }
+
+        .objectives-list, .key-concepts-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .objectives-list li, .key-concepts-list li {
+            display: flex;
+            align-items: start;
+            gap: var(--space-3);
+            font-size: 0.938rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .check-icon {
+            color: var(--neon-cyan);
+            font-weight: 600;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .lesson-section {
+            margin-bottom: var(--space-6);
+        }
+
+        .lesson-section h2 {
+            font-family: var(--font-display);
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-4);
+            letter-spacing: 0.5px;
+        }
+
+        .lesson-section p {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: var(--space-4);
+        }
+
+        /* ===== CODE BLOCK ===== */
+        .code-block-wrapper {
+            margin-bottom: var(--space-5);
+        }
+
+        .code-block-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-default);
+            border-bottom: none;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            padding: var(--space-3) var(--space-4);
+        }
+
+        .code-language {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .copy-button {
+            padding: 0.25rem 0.75rem;
+            background: rgba(197, 125, 255, 0.1);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--duration) var(--ease-smooth);
+        }
+
+        .copy-button:hover {
+            background: rgba(197, 125, 255, 0.2);
+            border-color: var(--neon-lavender);
+            color: var(--neon-lavender);
+        }
+
+        .code-block {
+            background: var(--code-bg);
+            border: 1px solid var(--border-default);
+            border-top: none;
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            padding: var(--space-5);
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: 0.938rem;
+            line-height: 1.8;
+            color: var(--code-text);
+        }
+
+        .keyword { 
+            color: var(--code-keyword); 
+            font-weight: 600;
+        }
+        .string { 
+            color: var(--code-string);
+        }
+        .function { 
+            color: var(--code-function);
+            font-weight: 500;
+        }
+        .number { 
+            color: var(--code-number);
+        }
+        .comment { 
+            color: var(--code-comment); 
+            font-style: italic;
+        }
+
+        .code-output {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: var(--space-3) var(--space-4);
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: var(--space-3);
+        }
+
+        .key-concepts-card {
+            border-left: 3px solid var(--neon-pink);
+        }
+
+        .key-concepts-list code {
+            background: rgba(197, 125, 255, 0.15);
+            padding: 0.125rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            color: var(--pastel-pink);
+        }
+
+        /* ===== EDITOR AREA ===== */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        }
+
+        .editor-tabs {
+            display: flex;
+            background: rgba(26, 18, 48, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-default);
+            padding: 0 var(--space-5);
+        }
+
+        .editor-tab {
+            font-family: var(--font-display);
+            padding: var(--space-4) var(--space-5);
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 0.938rem;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            transition: all var(--duration) var(--ease-smooth);
+            letter-spacing: 0.5px;
+        }
+
+        .editor-tab:hover {
+            color: var(--text-primary);
+        }
+
+        .editor-tab.active {
+            color: var(--neon-lavender);
+        }
+
+        .editor-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-soft);
+        }
+
+        .editor-workspace {
+            flex: 1;
+            padding: var(--space-6);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .editor-wrapper {
+            position: relative;
+            flex: 1;
+            margin-bottom: var(--space-5);
+        }
+
+        .editor {
+            width: 100%;
+            height: 100%;
+            min-height: 450px;
+            background: rgba(26, 18, 48, 0.8);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            padding: var(--space-5);
+            font-family: var(--font-mono);
+            font-size: 0.938rem;
+            line-height: 1.8;
+            color: var(--text-primary);
+            resize: vertical;
+            transition: all var(--duration) var(--ease-smooth);
+        }
+
+        .editor:focus {
+            outline: none;
+            border-color: var(--neon-lavender);
+            box-shadow: 0 0 0 3px rgba(197, 125, 255, 0.2);
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            font-family: var(--font-display);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-6);
+            font-size: 0.938rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            border: none;
+            cursor: pointer;
+            transition: all var(--duration) var(--ease-smooth);
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            flex: 1;
+            background: var(--gradient-sunset);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 110, 199, 0.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(255, 110, 199, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            flex: 1;
+            background: rgba(93, 253, 255, 0.1);
+            color: var(--neon-cyan);
+            border: 1px solid var(--border-default);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(93, 253, 255, 0.2);
+            border-color: var(--neon-cyan);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .help-text {
+            text-align: center;
+            font-size: 0.813rem;
+            color: var(--text-muted);
+            margin-bottom: var(--space-4);
+        }
+
+        .console-output {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            min-height: 160px;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            line-height: 1.8;
+        }
+
+        .console-header {
+            font-family: var(--font-display);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            color: var(--neon-cyan);
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: var(--space-3);
+            padding-bottom: var(--space-2);
+            border-bottom: 1px solid var(--border-subtle);
+            letter-spacing: 0.5px;
+        }
+
+        .console-content {
+            color: var(--pastel-mint);
+        }
+
+        /* ===== TEST RESULTS ===== */
+        .test-results {
+            padding: var(--space-6);
+            overflow-y: auto;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, rgba(160, 255, 230, 0.15) 0%, rgba(93, 253, 255, 0.1) 100%);
+            border: 1px solid rgba(160, 255, 230, 0.3);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+            box-shadow: 0 8px 30px rgba(160, 255, 230, 0.2);
+        }
+
+        .results-title {
+            font-family: var(--font-display);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: 0.5px;
+        }
+
+        .success-icon {
+            width: 36px;
+            height: 36px;
+            color: var(--pastel-mint);
+        }
+
+        .results-score {
+            font-family: var(--font-display);
+            background: rgba(0, 0, 0, 0.4);
+            padding: var(--space-3) var(--space-6);
+            border: 1px solid var(--pastel-mint);
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--pastel-mint);
+            letter-spacing: 1px;
+        }
+
+        .test-case {
+            background: linear-gradient(135deg, rgba(197, 125, 255, 0.05) 0%, rgba(93, 253, 255, 0.03) 100%);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-5);
+            margin-bottom: var(--space-4);
+            transition: all var(--duration) var(--ease-smooth);
+        }
+
+        .test-case:hover {
+            border-color: var(--border-default);
+            box-shadow: 0 4px 15px rgba(197, 125, 255, 0.1);
+        }
+
+        .test-case.passed {
+            border-left: 3px solid var(--pastel-mint);
+        }
+
+        .test-case-header {
+            font-family: var(--font-display);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-primary);
+            letter-spacing: 0.5px;
+        }
+
+        .test-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            color: var(--pastel-mint);
+        }
+
+        .test-details {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+            font-size: 0.938rem;
+        }
+
+        .test-detail-row {
+            display: flex;
+            gap: var(--space-3);
+            align-items: baseline;
+        }
+
+        .test-label {
+            color: var(--text-tertiary);
+            min-width: 110px;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        .test-value {
+            font-family: var(--font-mono);
+            color: var(--neon-cyan);
+            background: rgba(93, 253, 255, 0.1);
+            padding: 0.25rem var(--space-3);
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+        }
+
+        .test-time {
+            color: var(--pastel-mint);
+            font-size: 0.813rem;
+            font-weight: 500;
+            margin-top: var(--space-2);
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--neon-lavender) 0%, var(--neon-cyan) 100%);
+            border-radius: var(--radius-sm);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--neon-pink) 0%, var(--neon-cyan) 100%);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                top: 70px;
+                left: 0;
+                bottom: 0;
+                z-index: 50;
+            }
+
+            .progress-wrapper {
+                display: none;
+            }
+
+            .logo {
+                font-size: 1.25rem;
+            }
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s var(--ease-smooth);
+        }
+
+        .fade-in-delay {
+            animation: fadeIn 0.4s var(--ease-smooth) 0.15s backwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-button" onclick="toggleSidebar()">
+                    <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+                <div class="logo">CodeWave</div>
+                <div class="exercise-info">
+                    <h1>Binary Search Implementation</h1>
+                    <p>Data Structures & Algorithms • Lesson 8</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="progress-wrapper">
+                    <span class="progress-text">Lesson 8 of 24</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                </div>
+                <span class="badge">Intermediate</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-content">
+                    <div class="sidebar-header">
+                        <h2 class="sidebar-title">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                            </svg>
+                            Lesson Content
+                        </h2>
+                        <button class="pin-button" onclick="togglePin(this)">
+                            📌 Pin
+                        </button>
+                    </div>
+
+                    <!-- Learning Objectives -->
+                    <div class="card objectives-card fade-in">
+                        <div class="card-header">
+                            🎯 Learning Objectives
+                        </div>
+                        <ul class="objectives-list">
+                            <li>
+                                <span class="check-icon">✓</span>
+                                <span>Master the binary search algorithm and understand its O(log n) time complexity</span>
+                            </li>
+                            <li>
+                                <span class="check-icon">✓</span>
+                                <span>Implement both recursive and iterative approaches effectively</span>
+                            </li>
+                            <li>
+                                <span class="check-icon">✓</span>
+                                <span>Handle edge cases including empty arrays and boundary conditions</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Lesson Content -->
+                    <div class="lesson-section fade-in-delay">
+                        <h2>Understanding Binary Search</h2>
+                        <p>
+                            Binary search is one of the most fundamental and efficient searching algorithms in computer science. 
+                            Unlike linear search which examines every element (O(n) complexity), binary search repeatedly divides 
+                            the search space in half, achieving logarithmic O(log n) time complexity.
+                        </p>
+                        <p>
+                            The key requirement is that your data must be sorted. When this condition is met, binary search 
+                            can find elements in large datasets incredibly quickly—searching through a million items requires 
+                            only about 20 comparisons!
+                        </p>
+                    </div>
+
+                    <!-- Code Example -->
+                    <div class="code-block-wrapper fade-in-delay">
+                        <div class="code-block-header">
+                            <span class="code-language">Python</span>
+                            <button class="copy-button">Copy</button>
+                        </div>
+                        <div class="code-block"><span class="keyword">def</span> <span class="function">binary_search</span>(arr, target):
+    <span class="comment"># Initialize left and right pointers</span>
+    left = <span class="number">0</span>
+    right = <span class="function">len</span>(arr) - <span class="number">1</span>
+    
+    <span class="keyword">while</span> left &lt;= right:
+        <span class="comment"># Calculate middle index (avoids overflow)</span>
+        mid = left + (right - left) // <span class="number">2</span>
+        
+        <span class="comment"># Check if target is at mid</span>
+        <span class="keyword">if</span> arr[mid] == target:
+            <span class="keyword">return</span> mid
+        
+        <span class="comment"># If target is greater, ignore left half</span>
+        <span class="keyword">elif</span> arr[mid] &lt; target:
+            left = mid + <span class="number">1</span>
+        
+        <span class="comment"># If target is smaller, ignore right half</span>
+        <span class="keyword">else</span>:
+            right = mid - <span class="number">1</span>
+    
+    <span class="comment"># Target not found</span>
+    <span class="keyword">return</span> -<span class="number">1</span></div>
+                        <div class="code-output">
+                            <strong>Example Usage:</strong><br>
+                            >>> sorted_array = [1, 3, 5, 7, 9, 11, 13, 15]<br>
+                            >>> binary_search(sorted_array, 7)<br>
+                            3
+                        </div>
+                    </div>
+
+                    <!-- Key Concepts -->
+                    <div class="card key-concepts-card fade-in-delay">
+                        <div class="card-header">
+                            💡 Key Concepts
+                        </div>
+                        <ul class="key-concepts-list">
+                            <li><span>•</span> The array <strong>must be sorted</strong> before applying binary search</li>
+                            <li><span>•</span> Use <code>left + (right - left) // 2</code> instead of <code>(left + right) // 2</code> to prevent integer overflow</li>
+                            <li><span>•</span> The condition is <code>while left &lt;= right</code> (not just <code>&lt;</code>) to include single element case</li>
+                            <li><span>•</span> Time complexity: O(log n) • Space complexity: O(1) for iterative version</li>
+                        </ul>
+                    </div>
+
+                    <!-- Your Task -->
+                    <div class="lesson-section fade-in-delay">
+                        <h2>Your Challenge</h2>
+                        <p>
+                            Implement a binary search function that finds the index of a target value in a sorted array. 
+                            Your solution should handle all edge cases and maintain optimal efficiency.
+                        </p>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Editor Area -->
+            <div class="editor-container">
+                <div class="editor-tabs">
+                    <button class="editor-tab active" onclick="switchTab('editor')">
+                        💻 Code Editor
+                    </button>
+                    <button class="editor-tab" onclick="switchTab('results')">
+                        ✅ Test Results
+                    </button>
+                </div>
+
+                <!-- Code Editor Tab -->
+                <div class="editor-workspace" id="editor-tab">
+                    <div class="editor-wrapper">
+                        <textarea class="editor" placeholder="Write your code here...">def binary_search(arr, target):
+    """
+    Performs binary search on a sorted array.
+    
+    Args:
+        arr (list): A sorted list of integers
+        target (int): The value to search for
+        
+    Returns:
+        int: Index of target if found, -1 otherwise
+    """
+    # TODO: Implement your solution here
+    pass
+
+
+# Test your function
+if __name__ == "__main__":
+    test_array = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+    result = binary_search(test_array, 7)
+    print(f"Index of 7: {result}")</textarea>
+                    </div>
+
+                    <div class="editor-actions">
+                        <button class="btn btn-secondary" onclick="runCode()">
+                            ▶️ Run Code
+                        </button>
+                        <button class="btn btn-primary" onclick="submitCode()">
+                            ✨ Submit Solution
+                        </button>
+                    </div>
+
+                    <p class="help-text">
+                        💡 Keyboard shortcuts: Ctrl+Enter to run • Ctrl+S to submit
+                    </p>
+
+                    <div class="console-output">
+                        <div class="console-header">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            Console Output
+                        </div>
+                        <div class="console-content" id="console-content">
+                            Click "Run Code" to test your implementation...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Results Tab -->
+                <div class="test-results" id="results-tab" style="display: none;">
+                    <div class="results-header">
+                        <div class="results-title">
+                            <svg class="success-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            All Tests Passed!
+                        </div>
+                        <div class="results-score">100/100</div>
+                    </div>
+
+                    <div class="test-case passed">
+                        <div class="test-case-header">
+                            <svg class="test-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <strong>Test 1: Target Found in Middle</strong>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-detail-row">
+                                <span class="test-label">Input:</span>
+                                <span class="test-value">binary_search([1, 3, 5, 7, 9], 5)</span>
+                            </div>
+                            <div class="test-detail-row">
+                                <span class="test-label">Expected:</span>
+                                <span class="test-value">2</span>
+                            </div>
+                            <div class="test-detail-row">
+                                <span class="test-label">Your Output:</span>
+                                <span class="test-value">2</span>
+                            </div>
+                            <div class="test-time">✓ Passed in 0.001s</div>
+                        </div>
+                    </div>
+
+                    <div class="test-case passed">
+                        <div class="test-case-header">
+                            <svg class="test-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <strong>Test 2: Target Not Found</strong>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-detail-row">
+                                <span class="test-label">Input:</span>
+                                <span class="test-value">binary_search([1, 3, 5, 7, 9], 4)</span>
+                            </div>
+                            <div class="test-detail-row">
+                                <span class="test-label">Expected:</span>
+                                <span class="test-value">-1</span>
+                            </div>
+                            <div class="test-detail-row">
+                                <span class="test-label">Your Output:</span>
+                                <span class="test-value">-1</span>
+                            </div>
+                            <div class="test-time">✓ Passed in 0.001s</div>
+                        </div>
+                    </div>
+
+                    <div class="test-case passed">
+                        <div class="test-case-header">
+                            <svg class="test-icon" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <strong>Test 3: Empty Array Edge Case</strong>
+                        </div>
+                        <div class="test-details">
+                            <div class="test-detail-row">
+                                <span class="test-label">Input:</span>
+                                <span class="test-value">binary_search([], 5)</span>
+                            </div>
+                            <div class="test-detail-row">
+                                <span class="test-label">Expected:</span>
+                                <span class="test-value">-1</span>
+                            </div>
+                            <div class="test-detail-row">
+                                <span class="test-label">Your Output:</span>
+                                <span class="test-value">-1</span>
+                            </div>
+                            <div class="test-time">✓ Passed in 0.001s</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 40px; text-align: center;">
+                        <button class="btn btn-primary" style="max-width: 320px;">
+                            Continue to Next Lesson →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        }
+
+        function togglePin(button) {
+            button.classList.toggle('pinned');
+            button.textContent = button.classList.contains('pinned') ? '📌 Pinned' : '📌 Pin';
+        }
+
+        function switchTab(tab) {
+            const tabs = document.querySelectorAll('.editor-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+
+            document.getElementById('editor-tab').style.display = 'none';
+            document.getElementById('results-tab').style.display = 'none';
+
+            if (tab === 'editor') {
+                document.getElementById('editor-tab').style.display = 'flex';
+                tabs[0].classList.add('active');
+            } else if (tab === 'results') {
+                document.getElementById('results-tab').style.display = 'block';
+                tabs[1].classList.add('active');
+            }
+        }
+
+        function runCode() {
+            const console = document.getElementById('console-content');
+            console.innerHTML = '<span style="color: var(--neon-cyan);">⚙️ Running your code...</span><br><br>';
+            
+            setTimeout(() => {
+                console.innerHTML = `<span style="color: var(--text-secondary);">>>> test_array = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]</span>
+<span style="color: var(--text-secondary);">>>> binary_search(test_array, 7)</span>
+<span style="color: var(--text-primary);">3</span>
+
+<span style="color: var(--text-secondary);">>>> binary_search(test_array, 100)</span>
+<span style="color: var(--text-primary);">-1</span>
+
+<span style="color: var(--pastel-mint); font-weight: 600;">✓ Code executed successfully!</span>`;
+            }, 1000);
+        }
+
+        function submitCode() {
+            const console = document.getElementById('console-content');
+            console.innerHTML = '<span style="color: var(--neon-cyan); font-weight: 500;">🔄 Submitting your solution and running all test cases...</span>';
+            
+            setTimeout(() => {
+                console.innerHTML = '<span style="color: var(--pastel-mint); font-weight: 600;">✅ Submission successful!</span><br><span style="color: var(--text-secondary);">All test cases passed. Switching to results view...</span>';
+                setTimeout(() => {
+                    switchTab('results');
+                }, 1500);
+            }, 2000);
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                runCode();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                submitCode();
+            }
+        });
+    </script>
+</body>
+</html>

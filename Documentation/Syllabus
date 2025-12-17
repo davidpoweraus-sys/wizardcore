@@ -1,0 +1,585 @@
+Course 1: Python for Offensive Security
+
+The Hacker's Swiss Army Knife
+Module 1: The Hacker's Toolkit (Core Python)
+
+    File I/O, strings/bytes, regular expressions for log analysis
+
+    Subprocess for tool chaining
+
+    Project: Write a fuzzer for a simple server
+
+    Security Link: Data parsing bugs, input validation
+
+Module 2: Binary Manipulation & Protocol Hacking
+
+    struct module, raw socket programming
+
+    Crafting custom packets/headers
+
+    Project: TCP proxy that intercepts/modifies traffic
+
+    Security Link: MITM concepts, protocol reverse engineering
+
+Module 3: Exploit Development & Payload Crafting
+
+    Using pwntools, generating pattern strings
+
+    Calculating offsets, ROP gadget searching
+
+    Project: Automate solving a simple stack buffer overflow
+
+    Security Link: Bridge between vulnerability and exploit
+
+Module 4: Web Exploitation Tooling
+
+    requests, BeautifulSoup, session handling
+
+    Automating CSRF/XSS discovery
+
+    Project: Parameter brute-forcer and SQLi detection script
+
+    Security Link: Web vulnerability classes at protocol level
+
+Module 5: Post-Exploitation & Automation
+
+    Writing keyloggers (conceptual), persistence scripts
+
+    Credential harvesters (for labs)
+
+    Project: Command & Control (C2) prototype
+
+    Security Link: Attacker's operational workflow
+
+Capstone: Multi-module exploit framework
+Course 2: C & Assembly: The Exploit Developer's Core
+
+Understanding Memory Corruption
+Module 1: Memory Corruption 101
+
+    Pointers, arrays, strcpy/sprintf
+
+    Heap allocators (malloc/free)
+
+    Project: Write intentionally vulnerable programs
+
+    Security Link: Creating lab targets
+
+Module 2: The Stack Frame as Attack Surface
+
+    Dissecting prologue/epilogue
+
+    Return address location, stack canaries
+
+    Project: Manually overwrite return address in debugger
+
+    Security Link: Classic stack buffer overflow
+
+Module 3: Defeating Modern Protections
+
+    DEP/NX: Introduction to ROP
+
+    ASLR: Information leaks, GOT/PLT exploitation
+
+    Stack Canaries: Leaking/defeating them
+
+    Project: Exploit non-executable stack using ROP
+
+    Security Link: Real-world exploit development
+
+Module 4: Heap Exploitation Fundamentals
+
+    Understanding glibc's malloc implementation
+
+    Use-After-Free (UAF), double-free
+
+    Project: Exploit simple UAF to gain code execution
+
+    Security Link: Modern exploit targets
+
+Module 5: Shellcoding & Payload Engineering
+
+    Position-independent, null-free shellcode
+
+    Encoders/decoders
+
+    Project: Reverse TCP shell in ASM for x86_64/ARM
+
+    Security Link: Final payload delivery
+
+Capstone: Full-chain exploit combining info leak + heap UAF
+Course 3: JavaScript & Browser Exploitation
+
+The Modern Attack Surface
+Module 1: The Browser as Attack Vector
+
+    DOM-based XSS, prototype pollution
+
+    Client-side deserialization
+
+    Project: Find/exploit XSS in vulnerable web app
+
+    Security Link: Beyond alert boxes to credential theft
+
+Module 2: Attacking the JavaScript Engine
+
+    JIT engines, type confusion, array buffer exploitation
+
+    Project: Analyze simplified type confusion PoC
+
+    Security Link: Path to browser RCE
+
+Module 3: Node.js & Server-Side JS Exploitation
+
+    eval() injection, module hijacking
+
+    Deserialization attacks
+
+    Project: Exploit Node.js deserialization bug for RCE
+
+    Security Link: Expanding web attack surface
+
+Module 4: Deobfuscation & Malware Analysis
+
+    Unpacking obfuscated JS
+
+    Control flow analysis, debugging
+
+    Project: Analyze malicious skimmer script
+
+    Security Link: Threat intelligence skill
+
+Capstone: Chain DOM XSS → prototype pollution → Node.js backend compromise
+Course 4: SQL & Database Exploitation
+
+*Beyond ' OR 1=1--*
+Module 1: Advanced SQL Injection
+
+    Union-based, error-based, blind (time/boolean)
+
+    Out-of-band (DNS/OAST) exfiltration
+
+    Project: Automate blind SQLi to extract schema
+
+    Security Link: Moving beyond basic injection
+
+Module 2: Database-Specific Attacks
+
+    MySQL: INTO OUTFILE for webshells
+
+    PostgreSQL: Large object abuse for RCE
+
+    MSSQL: xp_cmdshell and linked servers
+
+    Project: Use SQLi to achieve full RCE
+
+    Security Link: Escalating from data theft to system compromise
+
+Module 3: Post-Exploitation Database Pivoting
+
+    Stealing password hashes
+
+    Abusing database links for lateral movement
+
+    Project: Escalate from low-privilege SQL to DBA/SA
+
+    Security Link: Database as foothold in enterprise
+
+Module 4: NoSQL Injection & Emerging Tech
+
+    MongoDB injection, GraphQL batching/DoS
+
+    Caching attacks (Redis)
+
+    Project: Exploit NoSQL injection to bypass auth
+
+    Security Link: Modern applications beyond SQL
+
+Capstone: Blind SQLi → file write → steal master key → lateral movement
+Course 5: Reverse Engineering for Exploit Development
+
+The Ultimate Synthesis
+Module 1: Static Analysis Fundamentals
+
+    IDA/Ghidra basics
+
+    Understanding compiler-generated code
+
+    Project: Manually reverse engineer binary to find buffer overflow
+
+    Security Link: Recognizing vulnerable patterns
+
+Module 2: Dynamic Analysis & Debugging
+
+    Debuggers (x64dbg, GDB with PEDA)
+
+    Breakpoints, tracing, memory watchpoints
+
+    Project: Bypass crackme license check, find hidden vuln
+
+    Security Link: Live analysis skills
+
+Module 3: Windows Internals for Reverse Engineers
+
+    PE format, Windows APIs
+
+    SEH (Structured Exception Handling) exploitation
+
+    Project: Exploit stack overflow with SEH overwrite
+
+    Security Link: Windows-specific techniques
+
+Module 4: Linux Binary Analysis
+
+    ELF format, PLT/GOT hijacking
+
+    dl-resolve exploitation
+
+    Project: Perform ret2dlresolve attack
+
+    Security Link: Linux-specific techniques
+
+Module 5: Real-World Bug Hunting Workflow
+
+    Patch diffing (Microsoft Tuesday patches)
+
+    Fuzzing (AFL++ basics)
+
+    Source code auditing for 1-days
+
+    Project: Analyze patched vulnerability, write exploit for unpatched
+
+    Security Link: Professional bug hunting
+
+Capstone: Full vulnerability discovery to exploit: Fuzz → triage → reverse → weaponize
+Course 6: Rootkit Development - The Art of Staying Hidden
+
+Advanced Persistence and Evasion
+Module 1: Introduction to Stealth & Persistence
+
+    Philosophy of hiding, persistence mechanisms
+
+    Detection vectors
+
+    Project: Simple userland backdoor with basic hiding
+
+    Security Link: Understanding attacker mindset
+
+Module 2: Userland Rootkits - Hooking & Interception
+
+    LD_PRELOAD hijacking
+
+    PLT/GOT hooking, inline function hooking
+
+    VDSO hooking
+
+    Project: LD_PRELOAD rootkit that hides files/processes
+
+    Security Link: Shared library mechanics
+
+Module 3: Direct Kernel Object Manipulation (DKOM)
+
+    Manipulating kernel data structures from userland
+
+    Linux: /proc/pid manipulation
+
+    Windows: EPROCESS/ETHREAD manipulation
+
+    Project: DKOM rootkit that hides process on Linux
+
+    Security Link: Kernel data structure knowledge
+
+Module 4: Kernel Module Rootkits (Linux)
+
+    Writing legitimate LKMs
+
+    Syscall table hooking, IDT hooking
+
+    Kernel function trampolines
+
+    Project: Kernel module that hooks sys_getdents and sys_kill
+
+    Security Link: Kernel integrity mechanisms
+
+Module 5: Windows Kernel Rootkits
+
+    Windows Driver Foundation basics
+
+    SSDT hooking, filter drivers
+
+    Object Manager callbacks
+
+    Project: Windows driver that hides process and file
+
+    Security Link: Windows driver model
+
+Module 6: Advanced Evasion & Anti-Forensics
+
+    Direct hardware access, hypervisor-based rootkits
+
+    Bootkits, firmware rootkits
+
+    Anti-debugging/anti-VM in kernel space
+
+    Project: Extend kernel module with detection evasion
+
+    Security Link: Hardware security concepts
+
+Module 7: Covert Communications & Data Exfiltration
+
+    Network protocol rootkits
+
+    Covert channels (ICMP, DNS tunneling)
+
+    SSL/TLS interception at kernel level
+
+    Project: Covert channel rootkit with DNS exfiltration
+
+    Security Link: Network stealth techniques
+
+Module 8: Rootkit Detection & Analysis
+
+    Cross-view detection
+
+    Integrity checking, behavioral analysis
+
+    Memory forensics with Volatility
+
+    Project: Rootkit detector comparing ps with /proc
+
+    Security Link: Defensive perspective
+
+Module 9: Modern Hardware-Based Attacks
+
+    UEFI/BIOS rootkits
+
+    AMD PSP/Intel ME vulnerabilities
+
+    GPU-based rootkits, Thunderbolt DMA attacks
+
+    Project: Research/document real hardware vulnerability
+
+    Security Link: Supply chain attacks
+
+Module 10: Legal & Ethical Framework
+
+    Computer Fraud and Abuse Act (CFAA)
+
+    Responsible disclosure, bug bounty programs
+
+    Working with vendors
+
+    Project: Responsible disclosure report for hypothetical vuln
+
+    Security Link: Professional ethics
+
+Capstone: Multi-layered rootkit with bootkit + kernel module + userland + covert comms + evasion
+Integration & Progression Strategy
+Cross-Course Projects:
+
+    Python scanner → finds open ports → SQL logs results → JavaScript dashboard → triggers C binary → analyze in ASM
+
+    Chain: Web vuln (JS) → Database compromise (SQL) → Privilege escalation (C/ASM) → Persistence (Rootkit)
+
+Skill Progression:
+text
+
+Basic Tools (Python) → Memory Understanding (C/ASM) → 
+Web/Database (JS/SQL) → Analysis (RE) → Advanced (Rootkits)
+
+Final Meta-Project:
+
+Multi-stage exploit that:
+
+    Discovers vulnerable service via Python scanner
+
+    Exploits SQL injection for initial access
+
+    Uploads malicious JavaScript parsed by internal tool
+
+    Triggers memory corruption in JS engine (C++ component)
+
+    Deploys C/ASM shellcode for persistence
+
+    Student analyzes shellcode via reverse engineering
+
+Lab Environment Requirements
+Minimum Setup:
+bash
+
+# Virtualization stack
+VMware/VirtualBox with nested virtualization
+KVM/QEMU for advanced scenarios
+
+# Linux development
+Custom kernels with debugging symbols
+CONFIG_KPROBES, CONFIG_DEBUG_INFO enabled
+
+# Windows development
+Test-signed drivers environment
+Windows Driver Kit (WDK)
+Separate test machines
+
+# Tools
+IDA Pro/Ghidra (free version OK for learning)
+GDB with PEDA/Pwndbg extensions
+WinDbg/KD for Windows
+Volatility for memory forensics
+AFL++ for fuzzing
+
+Safety Protocols:
+
+    Air-gapped lab networks only
+
+    No internet connectivity for infected machines
+
+    Regular snapshots for recovery
+
+    Documentation of all experiments
+
+    Clear boundaries between lab and production
+
+Real-World Applications for White Hats
+Career Paths:
+
+    Red Team Operator: Testing enterprise detection
+
+    Malware Analyst: Understanding APTs
+
+    Kernel Security Researcher: Finding OS vulnerabilities
+
+    Forensic Tool Developer: Creating detection tools
+
+    IoT Security Researcher: Embedded systems security
+
+Bug Bounty Specializations:
+
+    Memory corruption in web apps (WASM, browser engines)
+
+    Kernel/driver vulnerabilities
+
+    Protocol implementation flaws
+
+    Hardware/firmware vulnerabilities
+
+Suggested Reading & Resources
+Books:
+
+    "The Shellcoder's Handbook" - Chris Anley et al.
+
+    "Rootkits: Subverting the Windows Kernel" - Greg Hoglund & Jamie Butler
+
+    "The Art of Software Security Assessment" - Dowd, McDonald, Schuh
+
+    "Practical Malware Analysis" - Michael Sikorski & Andrew Honig
+
+    "A Bug Hunter's Diary" - Tobias Klein
+
+Online Resources:
+
+    Phrack Magazine (historical but relevant)
+
+    MITRE ATT&CK Framework
+
+    OWASP Web Security Testing Guide
+
+    Kernel.org documentation
+
+    Intel/AMD architecture manuals
+
+Academic Papers:
+
+    "SubVirt: Implementing malware with virtual machines"
+
+    "Blue Pill: The impossible-to-detect malware"
+
+    "Return-Oriented Programming: Systems, Languages, and Applications"
+
+    "The Geometry of Innocent Flesh on the Bone: Return-into-libc..."
+
+Practice Platforms:
+
+    Hack The Box
+
+    TryHackMe
+
+    OverTheWire
+
+    Pwnable.kr
+
+    Exploit Education
+
+Ethical Guidelines
+Golden Rules:
+
+    Never test systems you don't own or have explicit permission to test
+
+    Document everything - methodologies, findings, disclosures
+
+    Responsible disclosure - give vendors time to patch
+
+    Knowledge for defense - always think about detection/prevention
+
+    Community contribution - share findings (appropriately)
+
+Legal Considerations:
+
+    Computer Fraud and Abuse Act (CFAA)
+
+    Digital Millennium Copyright Act (DMCA)
+
+    General Data Protection Regulation (GDPR)
+
+    Local computer crime laws
+
+Assessment & Certification
+Progressive Milestones:
+
+    Apprentice: Complete Courses 1-3 with all projects
+
+    Journeyman: Complete Courses 4-5 with working exploits
+
+    Master: Complete Course 6 with novel research
+
+    Wizard: Publish responsible disclosure or tool to community
+
+Portfolio Requirements:
+
+    10+ working exploits (various difficulty)
+
+    2+ tools released as open source
+
+    1+ responsible disclosure with CVE
+
+    Blog/writeup demonstrating deep understanding
+
+Instructor Guidance
+Teaching Philosophy:
+
+    Show, don't just tell - live demonstrations are crucial
+
+    Break it first, then fix it - understanding through breaking
+
+    Answer "why" not just "how" - deep understanding
+
+    Encourage experimentation - safe failure is learning
+
+    Connect to real-world - case studies of actual exploits
+
+Common Pitfalls to Address:
+
+    Students trying to run before they can walk (skipping fundamentals)
+
+    Getting stuck in "tool dependency" without understanding
+
+    Frustration with debugging - teach persistence
+
+    Ethical boundaries - reinforce constantly
+
+    Imposter syndrome - celebrate small victories
+
+Conclusion
+
+This curriculum provides a comprehensive path from beginner to advanced exploit developer. The journey is challenging but immensely rewarding, developing not just technical skills but also critical thinking, persistence, and ethical responsibility.
+
+Remember: The goal is not to create malicious actors, but to develop the expertise needed to defend against the most sophisticated attacks. With great power comes great responsibility - use this knowledge to make the digital world safer for everyone.
