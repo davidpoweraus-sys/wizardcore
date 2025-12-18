@@ -125,8 +125,7 @@ services:
   # Backend API
   backend:
     build: ./wizardcore-backend
-    ports:
-      - "8080:8080"
+    # Port not exposed on host; accessed via internal network or reverse proxy
     environment:
       - PORT=8080
       - DATABASE_URL=postgresql://wizardcore:/8I+qc0afMvSHmL987Vk6A==@postgres:5432/wizardcore?sslmode=disable
