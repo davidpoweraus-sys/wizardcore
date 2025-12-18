@@ -8,7 +8,10 @@ WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json ./
-RUN npm ci --only=production
+
+# Install all dependencies (including dev) for building
+ENV NODE_ENV=development
+RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
