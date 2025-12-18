@@ -33,6 +33,12 @@ ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV NEXT_PUBLIC_JUDGE0_API_URL=$NEXT_PUBLIC_JUDGE0_API_URL
 ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
 
+# Ensure .env.production exists with fallback values for Next.js build
+RUN echo "NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-https://auth.offensivewizard.com}" > .env.production && \
+    echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY:-uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps=}" >> .env.production && \
+    echo "NEXT_PUBLIC_JUDGE0_API_URL=${NEXT_PUBLIC_JUDGE0_API_URL:-https://judge0.offensivewizard.com}" >> .env.production && \
+    echo "NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL:-https://offensivewizard.com/api}" >> .env.production
+
 RUN npm run build
 
 # Production image, copy all the files and run next
