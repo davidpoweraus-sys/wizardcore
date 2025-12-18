@@ -55,6 +55,12 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - wizardcore-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wizardcore -d wizardcore"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # Redis (for caching and WebSockets)
   redis:
@@ -136,7 +142,7 @@ services:
       POSTGRES_DB: judge0
       DATABASE_URL: postgresql://judge0:password@judge0-postgres:5432/judge0
       JUDGE0_API_URL: http://judge0:2358
-    command: ["./scripts/start-worker.sh"]
+    command: ["./scripts/workers"]
     depends_on:
       judge0-redis:
         condition: service_started
@@ -149,17 +155,21 @@ services:
     # Port not exposed on host; accessed via internal network or reverse proxy
     environment:
       - PORT=8080
-      - DATABASE_URL=postgresql://wizardcore:/8I+qc0afMvSHmL987Vk6A==@postgres:5432/wizardcore?sslmode=disable
+      - DATABASE_URL=postgresql://wizardcore:%2F8I%2Bqc0afMvSHmL987Vk6A%3D%3D@postgres:5432/wizardcore?sslmode=disable
       - REDIS_URL=redis://:xZDxSwVXHxVf6FYksaeEoA==@redis:6379
       - JUDGE0_API_URL=http://judge0:2358
       - FRONTEND_URL=https://offensivewizard.com
       - SUPABASE_URL=http://supabase-auth:9999
       - SUPABASE_JWT_SECRET=aNBMlTAljHvKyR2dPu6R6nyggeW2398Na3R4XL1+oyebUDiuzSO61nZzoVmRi0h4
     depends_on:
-      - postgres
-      - redis
-      - judge0
-      - supabase-auth
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      judge0:
+        condition: service_started
+      supabase-auth:
+        condition: service_started
     networks:
       - wizardcore-network
 
