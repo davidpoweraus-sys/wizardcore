@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  judge0-redis:
+    image: redis:7.2-alpine
+    container_name: judge0-redis
+    restart: unless-stopped
+    networks:
+      - judge0-network
+    volumes:
+      - judge0-redis-data:/data
+
+  judge0-postgres:
+    image: postgres:16-alpine
+    container_name: judge0-postgres
+    restart: unless-stopped
+    networks:
+      - judge0-network
+    environment:
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: judge0
+    volumes:
+      - judge0-postgres-data:/var/lib/postgresql/data
+
+  judge0:
+    image: judge0/judge0:latest
+    container_name: judge0
+    restart: unless-stopped
+    networks:
+      - judge0-network
+    ports:
+      - "2358:2358"
+      - "5000:5000"
+    environment:
+      REDIS_HOST: judge0-redis
+      POSTGRES_HOST: judge0-postgres
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: judge0
+      JUDGE0_API_URL: http://localhost:2358
+      JUDGE0_API_KEY: "your-secret-key"
+    depends_on:
+      - judge0-redis
+      - judge0-postgres
+
+  judge0-worker:
+    image: judge0/judge0:latest
+    container_name: judge0-worker
+    restart: unless-stopped
+    networks:
+      - judge0-network
+    environment:
+      REDIS_HOST: judge0-redis
+      POSTGRES_HOST: judge0-postgres
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: judge0
+      JUDGE0_API_URL: http://judge0:2358
+    command: ["./scripts/start-worker.sh"]
+    depends_on:
+      - judge0-redis
+      - judge0-postgres
+
+networks:
+  judge0-network:
+    driver: bridge
+
+volumes:
+  judge0-redis-data:
+  judge0-postgres-data:

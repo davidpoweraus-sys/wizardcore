@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: wizardcore
+      POSTGRES_PASSWORD: wizardcore
+      POSTGRES_DB: wizardcore
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  judge0:
+    image: judge0/judge0:latest
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=judge0-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=judge0
+      - POSTGRES_USER=judge0
+      - POSTGRES_PASSWORD=judge0
+    ports:
+      - "2358:2358"
+    depends_on:
+      - judge0-postgres
+      - redis
+
+  judge0-postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: judge0
+      POSTGRES_DB: judge0
+    volumes:
+      - judge0_postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./wizardcore-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATABASE_URL=postgresql://wizardcore:wizardcore@postgres:5432/wizardcore?sslmode=disable
+      - REDIS_URL=redis:6379
+      - JUDGE0_API_URL=http://judge0:2358
+      - FRONTEND_URL=http://localhost:3000
+    depends_on:
+      - postgres
+      - redis
+      - judge0
+    volumes:
+      - ./wizardcore-backend:/app
+
+volumes:
+  postgres_data:
+  redis_data:
+  judge0_postgres_data:
