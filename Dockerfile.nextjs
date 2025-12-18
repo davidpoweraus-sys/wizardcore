@@ -28,18 +28,24 @@ ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps=
 ARG NEXT_PUBLIC_JUDGE0_API_URL=https://judge0.offensivewizard.com
 ARG NEXT_PUBLIC_BACKEND_URL=https://offensivewizard.com/api
 
-ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
-ENV NEXT_PUBLIC_JUDGE0_API_URL=$NEXT_PUBLIC_JUDGE0_API_URL
-ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
-
-# Ensure .env.production exists with fallback values for Next.js build
-RUN echo "NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-https://auth.offensivewizard.com}" > .env.production && \
-    echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY:-uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps=}" >> .env.production && \
-    echo "NEXT_PUBLIC_JUDGE0_API_URL=${NEXT_PUBLIC_JUDGE0_API_URL:-https://judge0.offensivewizard.com}" >> .env.production && \
-    echo "NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL:-https://offensivewizard.com/api}" >> .env.production
-
-RUN npm run build
+# Set environment variables with fallback and build
+RUN export NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL:-https://auth.offensivewizard.com}" && \
+    export NEXT_PUBLIC_SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY:-uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps=}" && \
+    export NEXT_PUBLIC_JUDGE0_API_URL="${NEXT_PUBLIC_JUDGE0_API_URL:-https://judge0.offensivewizard.com}" && \
+    export NEXT_PUBLIC_BACKEND_URL="${NEXT_PUBLIC_BACKEND_URL:-https://offensivewizard.com/api}" && \
+    echo "--- Environment Variables ---" && \
+    echo "NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL" && \
+    echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY" && \
+    echo "NEXT_PUBLIC_JUDGE0_API_URL=$NEXT_PUBLIC_JUDGE0_API_URL" && \
+    echo "NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL" && \
+    echo "--- Writing .env.production ---" && \
+    echo "NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL" > .env.production && \
+    echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY" >> .env.production && \
+    echo "NEXT_PUBLIC_JUDGE0_API_URL=$NEXT_PUBLIC_JUDGE0_API_URL" >> .env.production && \
+    echo "NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL" >> .env.production && \
+    echo "--- .env.production content ---" && \
+    cat .env.production && \
+    npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
