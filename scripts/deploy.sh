@@ -19,7 +19,51 @@ echo "Compose file: $COMPOSE_FILE"
 echo "Project name: $PROJECT_NAME"
 echo "Environment file: $ENV_FILE"
 
-if [[ ! -f "$ENV_FILE" ]]; then
+# Function to validate environment file
+validate_env() {
+    local env_file="$1"
+    if [[ ! -f "$env_file" ]]; then
+        echo "Error: Environment file $env_file not found."
+        echo "Please create it from .env.example or run setup script."
+        exit 1
+    fi
+
+    # List of required variables (non-empty)
+    local required_vars=(
+        "NEXT_PUBLIC_SUPABASE_URL"
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+        "SUPABASE_JWT_SECRET"
+        "DATABASE_URL"
+        "REDIS_URL"
+        "JUDGE0_API_URL"
+        "JUDGE0_API_KEY"
+    )
+
+    local missing=()
+    for var in "${required_vars[@]}"; do
+        if ! grep -q "^$var=" "$env_file" || [[ -z "$(grep "^$var=" "$env_file" | cut -d= -f2-)" ]]; then
+            missing+=("$var")
+        fi
+    done
+
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        echo "Warning: The following required environment variables are missing or empty in $env_file:"
+        printf '%s\n' "${missing[@]}"
+        echo "Please set them before deployment."
+        echo "Continue anyway? (y/N)"
+        read -r response
+        if [[ ! "$response" =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
+    else
+        echo "Environment file validation passed."
+    fi
+}
+
+# Validate environment file if it exists
+if [[ -f "$ENV_FILE" ]]; then
+    validate_env "$ENV_FILE"
+else
     echo "Warning: Environment file $ENV_FILE not found. Proceeding without it."
     ENV_FILE=""
 fi
