@@ -1,0 +1,173 @@
+version: '3.8'
+
+services:
+  # Supabase Auth (GoTrue)
+  supabase-auth:
+    image: supabase/gotrue:v2.128.0
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgresql://supabase_auth_admin:password@supabase-postgres:5432/supabase_auth?sslmode=disable
+      GOTRUE_SITE_URL: https://offensivewizard.com
+      GOTRUE_JWT_SECRET: aNBMlTAljHvKyR2dPu6R6nyggeW2398Na3R4XL1+oyebUDiuzSO61nZzoVmRi0h4
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_ISSUER: supabase
+      GOTRUE_DISABLE_SIGNUP: 'false'
+      GOTRUE_MAILER_AUTOCONFIRM: 'true'
+    ports:
+      - "9999:9999"
+    depends_on:
+      - supabase-postgres
+    networks:
+      - wizardcore-network
+
+  # Supabase PostgreSQL (for auth and metadata)
+  supabase-postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: supabase_auth_admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: supabase_auth
+    volumes:
+      - supabase_postgres_data:/var/lib/postgresql/data
+    networks:
+      - wizardcore-network
+
+  # Our existing PostgreSQL (for wizardcore data)
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: wizardcore
+      POSTGRES_PASSWORD: /8I+qc0afMvSHmL987Vk6A==
+      POSTGRES_DB: wizardcore
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - wizardcore-network
+
+  # Redis (for caching and WebSockets)
+  redis:
+    image: redis:7-alpine
+    environment:
+      REDIS_PASSWORD: xZDxSwVXHxVf6FYksaeEoA==
+    command: redis-server --requirepass xZDxSwVXHxVf6FYksaeEoA==
+    volumes:
+      - redis_data:/data
+    networks:
+      - wizardcore-network
+
+  # Judge0 Redis
+  judge0-redis:
+    image: redis:7.2-alpine
+    container_name: judge0-redis
+    restart: unless-stopped
+    networks:
+      - wizardcore-network
+    volumes:
+      - judge0-redis-data:/data
+
+  # Judge0 PostgreSQL
+  judge0-postgres:
+    image: postgres:16-alpine
+    container_name: judge0-postgres
+    restart: unless-stopped
+    networks:
+      - wizardcore-network
+    environment:
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: judge0
+    volumes:
+      - judge0-postgres-data:/var/lib/postgresql/data
+
+  # Judge0
+  judge0:
+    image: judge0/judge0:latest
+    container_name: judge0
+    restart: unless-stopped
+    networks:
+      - wizardcore-network
+    ports:
+      - "2358:2358"
+    environment:
+      REDIS_HOST: judge0-redis
+      POSTGRES_HOST: judge0-postgres
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: judge0
+      JUDGE0_API_URL: http://judge0:2358
+      JUDGE0_API_KEY: j/Vyndi/9OZsfH11VNc+UVLf+iYlJKQa
+    depends_on:
+      - judge0-redis
+      - judge0-postgres
+
+  # Judge0 Worker
+  judge0-worker:
+    image: judge0/judge0:latest
+    container_name: judge0-worker
+    restart: unless-stopped
+    networks:
+      - wizardcore-network
+    environment:
+      REDIS_HOST: judge0-redis
+      POSTGRES_HOST: judge0-postgres
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: judge0
+      JUDGE0_API_URL: http://judge0:2358
+    command: ["./scripts/start-worker.sh"]
+    depends_on:
+      - judge0-redis
+      - judge0-postgres
+
+  # Backend API
+  backend:
+    build: ./wizardcore-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATABASE_URL=postgresql://wizardcore:/8I+qc0afMvSHmL987Vk6A==@postgres:5432/wizardcore?sslmode=disable
+      - REDIS_URL=redis://:xZDxSwVXHxVf6FYksaeEoA==@redis:6379
+      - JUDGE0_API_URL=http://judge0:2358
+      - FRONTEND_URL=https://offensivewizard.com
+      - SUPABASE_URL=http://supabase-auth:9999
+      - SUPABASE_JWT_SECRET=aNBMlTAljHvKyR2dPu6R6nyggeW2398Na3R4XL1+oyebUDiuzSO61nZzoVmRi0h4
+    depends_on:
+      - postgres
+      - redis
+      - judge0
+      - supabase-auth
+    networks:
+      - wizardcore-network
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.nextjs
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_SUPABASE_URL=https://auth.offensivewizard.com
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps=
+      - NEXT_PUBLIC_JUDGE0_API_URL=https://judge0.offensivewizard.com
+      - NEXT_PUBLIC_BACKEND_URL=https://offensivewizard.com/api
+    depends_on:
+      - backend
+      - supabase-auth
+    networks:
+      - wizardcore-network
+
+networks:
+  wizardcore-network:
+    driver: bridge
+
+volumes:
+  supabase_postgres_data:
+  postgres_data:
+  redis_data:
+  judge0-redis-data:
+  judge0-postgres-data:

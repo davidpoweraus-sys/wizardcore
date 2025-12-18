@@ -1,23 +1,60 @@
 import type { Metadata } from "next";
-import { Inter, Space_Mono, Outfit } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const inter = Inter({
+const inter = localFont({
+  src: [
+    {
+      path: "./fonts/Inter-VariableFont_opsz,wght.ttf",
+      weight: "100 900",
+      style: "normal",
+    },
+    {
+      path: "./fonts/Inter-Italic-VariableFont_opsz,wght.ttf",
+      weight: "100 900",
+      style: "italic",
+    },
+  ],
   variable: "--font-inter",
-  subsets: ["latin"],
   display: "swap",
 });
 
-const spaceMono = Space_Mono({
+const spaceMono = localFont({
+  src: [
+    {
+      path: "./fonts/SpaceMono-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "./fonts/SpaceMono-Italic.ttf",
+      weight: "400",
+      style: "italic",
+    },
+    {
+      path: "./fonts/SpaceMono-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "./fonts/SpaceMono-BoldItalic.ttf",
+      weight: "700",
+      style: "italic",
+    },
+  ],
   variable: "--font-space-mono",
-  subsets: ["latin"],
-  weight: ["400", "700"],
   display: "swap",
 });
 
-const outfit = Outfit({
+const outfit = localFont({
+  src: [
+    {
+      path: "./fonts/Outfit-VariableFont_wght.ttf",
+      weight: "100 900",
+      style: "normal",
+    },
+  ],
   variable: "--font-outfit",
-  subsets: ["latin"],
   display: "swap",
 });
 
