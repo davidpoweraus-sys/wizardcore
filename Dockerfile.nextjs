@@ -45,7 +45,10 @@ RUN export NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL:-https://auth.of
     echo "NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL" >> .env.production && \
     echo "--- .env.production content ---" && \
     cat .env.production && \
-    npm run build
+    npm run build && \
+    echo "--- Verifying build output ---" && \
+    ls -la .next && \
+    ls -la .next/standalone 2>&1 | head -20
 
 # Production image, copy all the files and run next
 FROM base AS runner
