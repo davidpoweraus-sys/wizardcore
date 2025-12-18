@@ -20,7 +20,8 @@ services:
     ports:
       - "9999:9999"
     depends_on:
-      - supabase-postgres
+      supabase-postgres:
+        condition: service_healthy
     networks:
       - wizardcore-network
 
@@ -33,8 +34,15 @@ services:
       POSTGRES_DB: supabase_auth
     volumes:
       - supabase_postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
     networks:
       - wizardcore-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supabase_auth_admin -d supabase_auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # Our existing PostgreSQL (for wizardcore data)
   postgres:
