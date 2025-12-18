@@ -16,6 +16,7 @@ services:
       GOTRUE_JWT_ISSUER: supabase
       GOTRUE_DISABLE_SIGNUP: 'false'
       GOTRUE_MAILER_AUTOCONFIRM: 'true'
+      API_EXTERNAL_URL: https://auth.offensivewizard.com
     ports:
       - "9999:9999"
     depends_on:
@@ -81,6 +82,12 @@ services:
       POSTGRES_DB: judge0
     volumes:
       - judge0-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U judge0 -d judge0"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # Judge0
   judge0:
@@ -97,11 +104,14 @@ services:
       POSTGRES_USER: judge0
       POSTGRES_PASSWORD: password
       POSTGRES_DB: judge0
+      DATABASE_URL: postgresql://judge0:password@judge0-postgres:5432/judge0
       JUDGE0_API_URL: http://judge0:2358
       JUDGE0_API_KEY: j/Vyndi/9OZsfH11VNc+UVLf+iYlJKQa
     depends_on:
-      - judge0-redis
-      - judge0-postgres
+      judge0-redis:
+        condition: service_started
+      judge0-postgres:
+        condition: service_healthy
 
   # Judge0 Worker
   judge0-worker:
@@ -116,11 +126,14 @@ services:
       POSTGRES_USER: judge0
       POSTGRES_PASSWORD: password
       POSTGRES_DB: judge0
+      DATABASE_URL: postgresql://judge0:password@judge0-postgres:5432/judge0
       JUDGE0_API_URL: http://judge0:2358
     command: ["./scripts/start-worker.sh"]
     depends_on:
-      - judge0-redis
-      - judge0-postgres
+      judge0-redis:
+        condition: service_started
+      judge0-postgres:
+        condition: service_healthy
 
   # Backend API
   backend:
