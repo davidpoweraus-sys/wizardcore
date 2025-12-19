@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { Bell, Search, User as UserIcon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -19,7 +20,20 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-10 bg-bg-elevated/80 backdrop-blur-md border-b border-border-default p-4">
       <div className="flex items-center justify-between">
-        <div className="flex-1 max-w-xl">
+        <div className="flex items-center gap-4">
+          <Image
+            src="/wizard_logo.png"
+            alt="WizardCore Logo"
+            width={40}
+            height={40}
+            className="drop-shadow-[0_0_10px_rgba(138,43,226,0.4)]"
+          />
+          <h1 className="text-xl font-bold bg-gradient-to-r from-neon-cyan to-neon-lavender bg-clip-text text-transparent hidden sm:block">
+            WizardCore
+          </h1>
+        </div>
+
+        <div className="flex-1 max-w-xl mx-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-muted" />
             <input

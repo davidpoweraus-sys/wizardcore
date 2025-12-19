@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
@@ -36,6 +37,16 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/wizard_logo.png"
+              alt="WizardCore Logo"
+              width={120}
+              height={120}
+              className="drop-shadow-[0_0_15px_rgba(138,43,226,0.5)]"
+              priority
+            />
+          </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-neon-pink to-neon-cyan bg-clip-text text-transparent">
             Welcome Back
           </h1>
