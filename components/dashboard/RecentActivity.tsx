@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckCircle, Code, BookOpen, Award, Clock, Loader } from 'lucide-react'
+import { Check, Code, BookOpen, Trophy, Clock, Loader } from 'pixelarticons/fonts/react'
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 
@@ -15,12 +15,12 @@ interface Activity {
 }
 
 const iconMap: Record<string, any> = {
-  completion: CheckCircle,
+  completion: Check,
   practice: Code,
   reading: BookOpen,
-  achievement: Award,
+  achievement: Trophy,
   streak: Clock,
-  other: CheckCircle,
+  other: Check,
 }
 
 const colorMap: Record<string, string> = {
@@ -119,7 +119,7 @@ export default function RecentActivity() {
 
       <div className="space-y-4">
         {activities.map((activity) => {
-          const Icon = iconMap[activity.type] || CheckCircle
+          const Icon = iconMap[activity.type] || Check
           const color = colorMap[activity.type] || 'text-gray-400'
           return (
             <div

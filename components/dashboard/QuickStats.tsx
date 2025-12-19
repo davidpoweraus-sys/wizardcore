@@ -1,6 +1,6 @@
 "use client"
 
-import { BookOpen, Target, Clock, TrendingUp } from 'lucide-react'
+import { BookOpen, Bullseye, Clock, TrendingUp } from 'pixelarticons/fonts/react'
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 
@@ -48,7 +48,7 @@ export default function QuickStats() {
       title: 'Completion Rate',
       value: `${stats.completion_rate}%`,
       change: '+5% from last month',
-      icon: Target,
+      icon: Bullseye,
       color: 'from-neon-pink to-neon-purple',
     },
     {

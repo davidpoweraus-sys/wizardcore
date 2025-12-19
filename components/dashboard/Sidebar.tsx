@@ -8,25 +8,25 @@ import {
   BookOpen,
   Trophy,
   Users,
-  Code2,
+  Code,
   User,
-  Settings,
-  Award,
-  BarChart3,
-  LogOut,
-} from 'lucide-react'
+  Sliders,
+  Trophy as Award,
+  ChartBar,
+  Logout,
+} from 'pixelarticons/fonts/react'
 import { createClient } from '@/lib/supabase/client'
 
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Pathways', href: '/dashboard/pathways', icon: BookOpen },
-  { name: 'Learning', href: '/dashboard/learning', icon: Code2 },
-  { name: 'Progress', href: '/dashboard/progress', icon: BarChart3 },
+  { name: 'Learning', href: '/dashboard/learning', icon: Code },
+  { name: 'Progress', href: '/dashboard/progress', icon: ChartBar },
   { name: 'Practice Arena', href: '/dashboard/practice', icon: Trophy },
   { name: 'Achievements', href: '/dashboard/achievements', icon: Award },
   { name: 'Leaderboard', href: '/dashboard/leaderboard', icon: Users },
   { name: 'Profile', href: '/dashboard/profile', icon: User },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { name: 'Settings', href: '/dashboard/settings', icon: Sliders },
 ]
 
 export default function Sidebar() {
@@ -88,7 +88,7 @@ export default function Sidebar() {
           onClick={handleSignOut}
           className={`flex items-center ${collapsed ? 'justify-center' : 'justify-start'} w-full p-3 rounded-lg text-red-400 hover:bg-red-900/20 transition`}
         >
-          <LogOut className="w-5 h-5" />
+          <Logout className="w-5 h-5" />
           {!collapsed && <span className="ml-3 font-medium">Sign Out</span>}
         </button>
       </div>

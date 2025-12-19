@@ -1,6 +1,6 @@
 'use client'
 
-import { Trophy, Star, Zap, Target, Flame, Shield, Lock, CheckCircle } from 'lucide-react'
+import { Trophy, MoonStar as Star, Zap, Bullseye, Zap as Flame, Shield, Lock, Check } from 'pixelarticons/fonts/react'
 
 const badges = [
   {
@@ -47,7 +47,7 @@ const badges = [
     id: 5,
     title: 'Bug Hunter',
     description: 'Find and report a security vulnerability',
-    icon: Target,
+    icon: Bullseye,
     color: 'from-purple-400 to-indigo-400',
     earned: false,
     progress: 0,
@@ -67,7 +67,7 @@ const badges = [
     id: 7,
     title: '100% Club',
     description: 'Achieve perfect score on 20 exercises',
-    icon: CheckCircle,
+    icon: Check,
     color: 'from-neon-pink to-neon-purple',
     earned: false,
     progress: 45,
