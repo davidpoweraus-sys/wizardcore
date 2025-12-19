@@ -10,12 +10,15 @@ services:
       GOTRUE_DB_DRIVER: postgres
       GOTRUE_DB_DATABASE_URL: postgresql://supabase_auth_admin:password@supabase-postgres:5432/supabase_auth?sslmode=disable
       GOTRUE_SITE_URL: http://localhost:3000
-      GOTRUE_JWT_SECRET: your-super-secret-jwt-secret-change-this
+      GOTRUE_JWT_SECRET: aNBMlTAljHvKyR2dPu6R6nyggeW2398Na3R4XL1+oyebUDiuzSO61nZzoVmRi0h4
       GOTRUE_JWT_EXP: 3600
       GOTRUE_JWT_AUD: authenticated
       GOTRUE_JWT_ISSUER: supabase
       GOTRUE_DISABLE_SIGNUP: 'false'
       GOTRUE_MAILER_AUTOCONFIRM: 'true'
+      API_EXTERNAL_URL: http://localhost:9999
+      GOTRUE_DB_AUTOMIGRATE: 'true'
+      GOTRUE_API_MOUNT_PATH: /auth/v1
       # CORS configuration
       GOTRUE_CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:3001
       GOTRUE_CORS_ALLOWED_HEADERS: Authorization, Content-Type, X-Client-Info, X-Requested-With
@@ -204,7 +207,7 @@ services:
       - JUDGE0_API_URL=http://judge0:2358
       - FRONTEND_URL=http://localhost:3000
       - SUPABASE_URL=http://supabase-auth:9999
-      - SUPABASE_JWT_SECRET=your-super-secret-jwt-secret-change-this
+      - SUPABASE_JWT_SECRET=aNBMlTAljHvKyR2dPu6R6nyggeW2398Na3R4XL1+oyebUDiuzSO61nZzoVmRi0h4
     depends_on:
       - postgres
       - redis

@@ -53,3 +53,6 @@ GRANT ALL ON SCHEMA auth TO supabase_auth_admin;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA auth TO supabase_auth_admin;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA auth TO supabase_auth_admin;
 GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA auth TO supabase_auth_admin;
+
+-- Set search_path for supabase_auth_admin to include auth schema
+ALTER ROLE supabase_auth_admin SET search_path TO auth, public;
