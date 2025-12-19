@@ -1,4 +1,6 @@
-version: '3.8'
+# Production Docker Compose configuration for Offensive Wizard
+# This file is used by Coolify for deployment
+# Note: The 'version' field is omitted as it's obsolete in Docker Compose v2
 
 services:
   # Supabase Auth (GoTrue)
