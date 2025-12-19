@@ -59,8 +59,8 @@ services:
   supabase-init:
     image: postgres:15-alpine
     depends_on:
-      supabase-init:
-        condition: service_started
+      supabase-postgres:
+        condition: service_healthy
     environment:
       PGHOST: supabase-postgres
       PGPORT: 5432
@@ -75,8 +75,8 @@ services:
         echo 'Waiting for database...';
         sleep 2;
       done;
-      psql -h supabase-postgres -p 5432 -U supabase_auth_admin -d supabase_auth -f /docker-entrypoint-initdb.d/01-create-auth-schema.sql
-      echo 'Auth schema initialized.'
+      psql -h supabase-postgres -p 5432 -U supabase_auth_admin -d supabase_auth -f /docker-entrypoint-initdb.d/01-create-auth-schema.sql;
+      echo 'Auth schema initialized.';
       tail -f /dev/null
       "
     networks:
