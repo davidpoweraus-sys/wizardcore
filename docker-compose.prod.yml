@@ -55,6 +55,33 @@ services:
       retries: 5
       start_period: 30s
 
+  # Supabase Auth Schema Initializer
+  supabase-init:
+    image: postgres:15-alpine
+    depends_on:
+      supabase-init:
+        condition: service_started
+    environment:
+      PGHOST: supabase-postgres
+      PGPORT: 5432
+      PGUSER: supabase_auth_admin
+      PGPASSWORD: password
+      PGDATABASE: supabase_auth
+    volumes:
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    command: >
+      sh -c "
+      until pg_isready -h supabase-postgres -p 5432 -U supabase_auth_admin -d supabase_auth; do
+        echo 'Waiting for database...';
+        sleep 2;
+      done;
+      psql -h supabase-postgres -p 5432 -U supabase_auth_admin -d supabase_auth -f /docker-entrypoint-initdb.d/01-create-auth-schema.sql
+      echo 'Auth schema initialized.'
+      tail -f /dev/null
+      "
+    networks:
+      - wizardcore-network
+
   # Our existing PostgreSQL (for wizardcore data)
   postgres:
     image: postgres:15-alpine
