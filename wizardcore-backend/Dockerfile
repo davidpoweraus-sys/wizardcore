@@ -18,12 +18,12 @@ FROM alpine:latest
 
 RUN apk --no-cache add ca-certificates
 
-WORKDIR /root/
+WORKDIR /app
 
 # Copy the binary from builder
 COPY --from=builder /app/main .
 
-# Copy migrations
+# Copy migrations (preserve path relative to /app)
 COPY --from=builder /app/internal/database/migrations ./internal/database/migrations
 
 # Expose port
