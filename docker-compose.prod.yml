@@ -17,9 +17,9 @@ services:
       GOTRUE_DISABLE_SIGNUP: 'false'
       GOTRUE_MAILER_AUTOCONFIRM: 'true'
       API_EXTERNAL_URL: https://auth.offensivewizard.com
-      # CORS configuration
-      GOTRUE_CORS_ALLOWED_ORIGINS: https://offensivewizard.com,http://localhost:3000
-      GOTRUE_CORS_ALLOWED_HEADERS: Authorization, Content-Type, X-Client-Info, X-Requested-With
+      # CORS configuration - allow all origins since nginx handles CORS
+      GOTRUE_CORS_ALLOWED_ORIGINS: *
+      GOTRUE_CORS_ALLOWED_HEADERS: Authorization, Content-Type, X-Client-Info, X-Requested-With, apikey, x-client-info, x-supabase-api-version
       GOTRUE_CORS_ALLOWED_METHODS: GET, POST, PUT, DELETE, OPTIONS
       GOTRUE_CORS_EXPOSED_HEADERS: X-Total-Count
     ports:
