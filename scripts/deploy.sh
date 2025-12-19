@@ -2,14 +2,55 @@
 set -e
 
 # Deployment script for wizardcore on Coolify
-# Usage: ./scripts/deploy.sh [ENV_FILE]
+# Usage: ./scripts/deploy.sh [OPTIONS] [ENV_FILE]
+# Options:
+#   -v, --verbose   Enable verbose output (set -x)
+#   -h, --help      Show this help message
 # If ENV_FILE is provided, it will be passed to docker compose via --env-file
+
+VERBOSE=false
+ENV_FILE=""
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -v|--verbose)
+            VERBOSE=true
+            shift
+            ;;
+        -h|--help)
+            echo "Usage: $0 [OPTIONS] [ENV_FILE]"
+            echo "Deploy wizardcore using docker-compose.prod.yml"
+            echo ""
+            echo "Options:"
+            echo "  -v, --verbose   Enable verbose output (set -x)"
+            echo "  -h, --help      Show this help message"
+            echo ""
+            echo "ENV_FILE: Path to environment file (default: .env)"
+            exit 0
+            ;;
+        *)
+            # Assume it's the environment file
+            if [[ -z "$ENV_FILE" ]]; then
+                ENV_FILE="$1"
+            else
+                echo "Error: Unexpected argument '$1'"
+                exit 1
+            fi
+            shift
+            ;;
+    esac
+done
+
+if [[ "$VERBOSE" == "true" ]]; then
+    set -x
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-ENV_FILE="${1:-.env}"
+ENV_FILE="${ENV_FILE:-.env}"
 COMPOSE_FILE="docker-compose.prod.yml"
 PROJECT_NAME="${COOLIFY_RESOURCE_UUID:-wizardcore}"
 
@@ -18,6 +59,7 @@ echo "Project root: $PROJECT_ROOT"
 echo "Compose file: $COMPOSE_FILE"
 echo "Project name: $PROJECT_NAME"
 echo "Environment file: $ENV_FILE"
+echo "Verbose: $VERBOSE"
 
 # Function to validate environment file
 validate_env() {
