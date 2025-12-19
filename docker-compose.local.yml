@@ -20,7 +20,7 @@ services:
       GOTRUE_DB_AUTOMIGRATE: 'true'
       GOTRUE_API_MOUNT_PATH: /auth/v1
       # CORS configuration - allow all origins
-      GOTRUE_CORS_ALLOWED_ORIGINS: *
+      GOTRUE_CORS_ALLOWED_ORIGINS: "*"
       GOTRUE_CORS_ALLOWED_HEADERS: Authorization, Content-Type, X-Client-Info, X-Requested-With, apikey, x-client-info, x-supabase-api-version
       GOTRUE_CORS_ALLOWED_METHODS: GET, POST, PUT, DELETE, OPTIONS
       GOTRUE_CORS_EXPOSED_HEADERS: X-Total-Count
