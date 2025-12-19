@@ -211,6 +211,21 @@ services:
     networks:
       - wizardcore-network
 
+  # Nginx Reverse Proxy for SSL termination
+  nginx-proxy:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx-config/selfsigned.crt:/etc/nginx/ssl/selfsigned.crt:ro
+      - ./nginx-config/selfsigned.key:/etc/nginx/ssl/selfsigned.key:ro
+    depends_on:
+      - supabase-auth
+    networks:
+      - wizardcore-network
+
   # Next.js Frontend
   frontend:
     build:
