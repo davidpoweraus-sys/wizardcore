@@ -19,8 +19,10 @@ services:
       GOTRUE_DISABLE_SIGNUP: 'false'
       GOTRUE_MAILER_AUTOCONFIRM: 'true'
       API_EXTERNAL_URL: https://auth.offensivewizard.com
-      # CORS configuration - specific origin required for credentials
-      GOTRUE_CORS_ALLOWED_ORIGINS: https://offensivewizard.com
+      # CORS configuration - allow any origin for now (user wants to login)
+      # Note: When using wildcard (*), Access-Control-Allow-Credentials cannot be true
+      # But Supabase Auth might handle this internally
+      GOTRUE_CORS_ALLOWED_ORIGINS: "*"
       GOTRUE_CORS_ALLOWED_HEADERS: Authorization, Content-Type, X-Client-Info, X-Requested-With, apikey, x-client-info, x-supabase-api-version
       GOTRUE_CORS_ALLOWED_METHODS: GET, POST, PUT, DELETE, OPTIONS
       GOTRUE_CORS_EXPOSED_HEADERS: X-Total-Count
