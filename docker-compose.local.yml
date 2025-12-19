@@ -16,6 +16,11 @@ services:
       GOTRUE_JWT_ISSUER: supabase
       GOTRUE_DISABLE_SIGNUP: 'false'
       GOTRUE_MAILER_AUTOCONFIRM: 'true'
+      # CORS configuration
+      GOTRUE_CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:3001
+      GOTRUE_CORS_ALLOWED_HEADERS: Authorization, Content-Type, X-Client-Info, X-Requested-With
+      GOTRUE_CORS_ALLOWED_METHODS: GET, POST, PUT, DELETE, OPTIONS
+      GOTRUE_CORS_EXPOSED_HEADERS: X-Total-Count
     ports:
       - "9999:9999"
     depends_on:

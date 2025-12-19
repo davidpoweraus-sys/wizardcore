@@ -17,11 +17,22 @@ services:
       GOTRUE_DISABLE_SIGNUP: 'false'
       GOTRUE_MAILER_AUTOCONFIRM: 'true'
       API_EXTERNAL_URL: https://auth.offensivewizard.com
+      # CORS configuration
+      GOTRUE_CORS_ALLOWED_ORIGINS: https://offensivewizard.com,http://localhost:3000
+      GOTRUE_CORS_ALLOWED_HEADERS: Authorization, Content-Type, X-Client-Info, X-Requested-With
+      GOTRUE_CORS_ALLOWED_METHODS: GET, POST, PUT, DELETE, OPTIONS
+      GOTRUE_CORS_EXPOSED_HEADERS: X-Total-Count
     ports:
       - "9999:9999"
     depends_on:
       supabase-postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9999/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - wizardcore-network
 
