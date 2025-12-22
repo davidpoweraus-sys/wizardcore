@@ -227,6 +227,7 @@ services:
     # Build locally: docker build -t ghcr.io/YOUR_USERNAME/wizardcore-frontend:latest -f Dockerfile.nextjs .
     # Push: docker push ghcr.io/YOUR_USERNAME/wizardcore-frontend:latest
     image: ghcr.io/davidpoweraus-sys/wizardcore-frontend:latest
+    pull_policy: always
     # Uncomment to build locally (requires 8GB+ RAM)
     # build:
     #   context: .
