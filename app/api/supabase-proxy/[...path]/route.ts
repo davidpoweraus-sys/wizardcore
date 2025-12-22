@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Internal Supabase Auth URL (within Docker network)
-// Use network-qualified hostname for Coolify/Linode DNS resolution
-const GOTRUE_URL = process.env.SUPABASE_INTERNAL_URL || 'http://supabase-auth.d44co4gk48kok84wcg8o0os0_wizardcore-network:9999'
+// Using persistent container_name for reliable DNS resolution
+const GOTRUE_URL = process.env.SUPABASE_INTERNAL_URL || 'http://wizardcore-supabase-auth:9999'
 
 // Handle OPTIONS preflight requests
 export async function OPTIONS(request: NextRequest) {
