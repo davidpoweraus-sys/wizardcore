@@ -21,13 +21,14 @@ services:
       GOTRUE_DISABLE_SIGNUP: 'false'
       GOTRUE_MAILER_AUTOCONFIRM: 'true'
       API_EXTERNAL_URL: https://auth.offensivewizard.com
-      # CORS configuration - allow any origin for now to get login working
-      GOTRUE_CORS_ALLOWED_ORIGINS: "*"
+      # CORS configuration - specific origin for proper credentials support
+      GOTRUE_CORS_ALLOWED_ORIGINS: "https://offensivewizard.com"
       GOTRUE_CORS_ALLOWED_HEADERS: "Authorization,Content-Type,X-Client-Info,X-Requested-With,apikey,x-client-info,x-supabase-api-version,Accept,Accept-Language,Content-Language"
       GOTRUE_CORS_ALLOWED_METHODS: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
       GOTRUE_CORS_EXPOSED_HEADERS: "X-Total-Count"
-      # Note: When using wildcard (*), Access-Control-Allow-Credentials cannot be true
-      # But the proxy approach bypasses this issue
+      GOTRUE_CORS_ALLOW_CREDENTIALS: "true"
+      # Enable auto-migrate for database schema
+      GOTRUE_DB_AUTOMIGRATE: "true"
     ports:
       - "9999:9999"
     depends_on:
@@ -226,22 +227,18 @@ services:
       context: .
       dockerfile: Dockerfile.nextjs
       args:
-        # Use Next.js proxy to bypass Coolify CORS issues
-        NEXT_PUBLIC_SUPABASE_URL: https://offensivewizard.com/api/supabase-proxy
+        NEXT_PUBLIC_SUPABASE_URL: https://auth.offensivewizard.com
         NEXT_PUBLIC_SUPABASE_ANON_KEY: uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps=
         NEXT_PUBLIC_JUDGE0_API_URL: https://judge0.offensivewizard.com
         NEXT_PUBLIC_BACKEND_URL: https://offensivewizard.com/api
     ports:
       - "3000:3000"
     environment:
-      # Use Next.js proxy to bypass Coolify CORS issues
-      - NEXT_PUBLIC_SUPABASE_URL=https://offensivewizard.com/api/supabase-proxy
+      # Direct connection to Supabase Auth (CORS now enabled on GoTrue)
+      - NEXT_PUBLIC_SUPABASE_URL=https://auth.offensivewizard.com
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps=
       - NEXT_PUBLIC_JUDGE0_API_URL=https://judge0.offensivewizard.com
       - NEXT_PUBLIC_BACKEND_URL=https://offensivewizard.com/api
-      # Internal URL for server-side proxy
-      # Using external URL as fallback until Docker DNS is resolved
-      - SUPABASE_INTERNAL_URL=https://auth.offensivewizard.com
     depends_on:
       - backend
       - supabase-auth
