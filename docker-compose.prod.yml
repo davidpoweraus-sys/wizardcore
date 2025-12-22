@@ -223,14 +223,19 @@ services:
 
   # Next.js Frontend
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.nextjs
-      args:
-        NEXT_PUBLIC_SUPABASE_URL: https://auth.offensivewizard.com
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps=
-        NEXT_PUBLIC_JUDGE0_API_URL: https://judge0.offensivewizard.com
-        NEXT_PUBLIC_BACKEND_URL: https://offensivewizard.com/api
+    # Use pre-built image from GitHub Container Registry to avoid memory issues
+    # Build locally: docker build -t ghcr.io/YOUR_USERNAME/wizardcore-frontend:latest -f Dockerfile.nextjs .
+    # Push: docker push ghcr.io/YOUR_USERNAME/wizardcore-frontend:latest
+    image: ghcr.io/davidpoweraus-sys/wizardcore-frontend:latest
+    # Uncomment to build locally (requires 8GB+ RAM)
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile.nextjs
+    #   args:
+    #     NEXT_PUBLIC_SUPABASE_URL: https://auth.offensivewizard.com
+    #     NEXT_PUBLIC_SUPABASE_ANON_KEY: uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps=
+    #     NEXT_PUBLIC_JUDGE0_API_URL: https://judge0.offensivewizard.com
+    #     NEXT_PUBLIC_BACKEND_URL: https://offensivewizard.com/api
     ports:
       - "3000:3000"
     environment:
