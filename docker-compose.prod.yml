@@ -6,6 +6,14 @@ services:
   # Supabase Auth (GoTrue)
   supabase-auth:
     image: supabase/gotrue:v2.184.0
+    labels:
+      # Traefik CORS middleware for Coolify reverse proxy
+      - "traefik.http.middlewares.auth-cors.headers.accessControlAllowOriginList=https://offensivewizard.com"
+      - "traefik.http.middlewares.auth-cors.headers.accessControlAllowCredentials=true"
+      - "traefik.http.middlewares.auth-cors.headers.accessControlAllowMethods=GET,POST,PUT,PATCH,DELETE,OPTIONS"
+      - "traefik.http.middlewares.auth-cors.headers.accessControlAllowHeaders=Authorization,Content-Type,X-Client-Info,X-Requested-With,apikey,x-client-info,x-supabase-api-version,Accept,Accept-Language,Content-Language"
+      - "traefik.http.middlewares.auth-cors.headers.accessControlExposeHeaders=X-Total-Count"
+      - "traefik.http.middlewares.auth-cors.headers.accessControlMaxAge=86400"
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
