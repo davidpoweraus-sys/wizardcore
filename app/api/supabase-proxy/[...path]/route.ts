@@ -22,41 +22,46 @@ export async function OPTIONS(request: NextRequest) {
 // Handle GET requests
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return proxyRequest(request, params.path)
+  const { path } = await params
+  return proxyRequest(request, path)
 }
 
 // Handle POST requests
 export async function POST(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return proxyRequest(request, params.path)
+  const { path } = await params
+  return proxyRequest(request, path)
 }
 
 // Handle PUT requests
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return proxyRequest(request, params.path)
+  const { path } = await params
+  return proxyRequest(request, path)
 }
 
 // Handle PATCH requests
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return proxyRequest(request, params.path)
+  const { path } = await params
+  return proxyRequest(request, path)
 }
 
 // Handle DELETE requests
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return proxyRequest(request, params.path)
+  const { path } = await params
+  return proxyRequest(request, path)
 }
 
 async function proxyRequest(request: NextRequest, path: string[]) {
