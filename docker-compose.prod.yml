@@ -14,6 +14,9 @@ services:
       - "traefik.http.middlewares.auth-cors.headers.accessControlAllowHeaders=Authorization,Content-Type,X-Client-Info,X-Requested-With,apikey,x-client-info,x-supabase-api-version,Accept,Accept-Language,Content-Language"
       - "traefik.http.middlewares.auth-cors.headers.accessControlExposeHeaders=X-Total-Count"
       - "traefik.http.middlewares.auth-cors.headers.accessControlMaxAge=86400"
+      # Apply middleware to Coolify-managed router (add your actual router name from Coolify)
+      # Example: traefik.http.routers.wizardcore-supabase-auth.middlewares=auth-cors
+      # You MUST add this in Coolify UI: find the auto-generated router name and add middleware
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
@@ -230,17 +233,21 @@ services:
       context: .
       dockerfile: Dockerfile.nextjs
       args:
-        NEXT_PUBLIC_SUPABASE_URL: https://auth.offensivewizard.com
+        # Use Next.js proxy to bypass Coolify CORS issues
+        NEXT_PUBLIC_SUPABASE_URL: https://offensivewizard.com/api/supabase-proxy
         NEXT_PUBLIC_SUPABASE_ANON_KEY: uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps=
         NEXT_PUBLIC_JUDGE0_API_URL: https://judge0.offensivewizard.com
         NEXT_PUBLIC_BACKEND_URL: https://offensivewizard.com/api
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_SUPABASE_URL=https://auth.offensivewizard.com
+      # Use Next.js proxy to bypass Coolify CORS issues
+      - NEXT_PUBLIC_SUPABASE_URL=https://offensivewizard.com/api/supabase-proxy
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps=
       - NEXT_PUBLIC_JUDGE0_API_URL=https://judge0.offensivewizard.com
       - NEXT_PUBLIC_BACKEND_URL=https://offensivewizard.com/api
+      # Internal URL for server-side proxy
+      - SUPABASE_INTERNAL_URL=http://supabase-auth:9999
     depends_on:
       - backend
       - supabase-auth
