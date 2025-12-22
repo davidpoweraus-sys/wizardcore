@@ -20,33 +20,58 @@ export default function RegisterPage() {
     setLoading(true)
     setError(null)
 
+    console.log('🚀 Registration started')
+    console.log('📧 Email:', email)
+    console.log('🌐 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.log('🔑 API Key present:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    console.log('🔗 Redirect URL:', `${window.location.origin}/auth/callback`)
+
     if (password !== confirmPassword) {
+      console.error('❌ Passwords do not match')
       setError('Passwords do not match')
       setLoading(false)
       return
     }
 
     if (password.length < 6) {
+      console.error('❌ Password too short')
       setError('Password must be at least 6 characters')
       setLoading(false)
       return
     }
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
+    try {
+      console.log('📤 Calling Supabase signUp...')
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
 
-    if (error) {
-      setError(error.message)
+      if (error) {
+        console.error('❌ Supabase error:', error)
+        console.error('Error details:', {
+          message: error.message,
+          status: error.status,
+          name: error.name,
+        })
+        setError(error.message)
+        setLoading(false)
+        return
+      }
+
+      console.log('✅ Registration successful!', data)
+      console.log('👤 User:', data.user)
+      console.log('🎫 Session:', data.session)
+      
+      router.push('/dashboard?registered=true')
+    } catch (err) {
+      console.error('💥 Unexpected error during registration:', err)
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred')
       setLoading(false)
-      return
     }
-
-    router.push('/dashboard?registered=true')
   }
 
   return (
