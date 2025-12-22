@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Environment Check</title>
+</head>
+<body>
+    <h1>Check Current Supabase URL</h1>
+    <p>Open browser console (F12) on <strong>https://offensivewizard.com</strong></p>
+    <p>Then paste this code:</p>
+    <pre>
+// Check what URL the app is actually using
+fetch('https://offensivewizard.com/_next/static/chunks/app/layout.js')
+  .then(r => r.text())
+  .then(text => {
+    const matches = text.match(/auth\.offensivewizard\.com|api\/supabase-proxy/g)
+    console.log('Found URLs:', matches)
+    if (matches?.includes('api/supabase-proxy')) {
+      console.log('✅ Using proxy URL - GOOD!')
+    } else {
+      console.log('❌ Still using old direct URL - Need to rebuild with new env var')
+    }
+  })
+
+// Or check the environment directly
+console.log('Checking Supabase client...')
+// This will show what URL is configured
+    </pre>
+
+    <h2>Quick Test</h2>
+    <p>Run this in console on offensivewizard.com:</p>
+    <pre>
+// Test if proxy endpoint exists
+fetch('/api/supabase-proxy/health')
+  .then(r => {
+    console.log('Proxy status:', r.status)
+    return r.text()
+  })
+  .then(data => console.log('Proxy response:', data))
+  .catch(e => console.error('Proxy error:', e))
+    </pre>
+</body>
+</html>
