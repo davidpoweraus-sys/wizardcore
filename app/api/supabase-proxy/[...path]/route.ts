@@ -89,14 +89,29 @@ async function proxyRequest(request: NextRequest, path: string[]) {
 
     console.log('📤 Making request to Supabase Auth...')
 
-    // Make request to internal Supabase Auth
+    // Read body once if it exists
+    let body = null
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      try {
+        body = await request.text()
+        console.log('📦 Request body length:', body.length)
+      } catch (e) {
+        console.log('⚠️  No body or already consumed')
+      }
+    }
+
+    // Make request to Supabase Auth with timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
+
     const response = await fetch(targetUrl, {
       method: request.method,
       headers: headers,
-      body: request.body,
-      // @ts-ignore - duplex is needed for streaming
-      duplex: 'half',
+      body: body,
+      signal: controller.signal,
     })
+
+    clearTimeout(timeoutId)
 
     console.log('✅ Proxy response status:', response.status)
     console.log('✅ Response headers:', Object.fromEntries(response.headers.entries()))
