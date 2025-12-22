@@ -6,17 +6,6 @@ services:
   # Supabase Auth (GoTrue)
   supabase-auth:
     image: supabase/gotrue:v2.184.0
-    labels:
-      # Traefik CORS middleware for Coolify reverse proxy
-      - "traefik.http.middlewares.auth-cors.headers.accessControlAllowOriginList=https://offensivewizard.com"
-      - "traefik.http.middlewares.auth-cors.headers.accessControlAllowCredentials=true"
-      - "traefik.http.middlewares.auth-cors.headers.accessControlAllowMethods=GET,POST,PUT,PATCH,DELETE,OPTIONS"
-      - "traefik.http.middlewares.auth-cors.headers.accessControlAllowHeaders=Authorization,Content-Type,X-Client-Info,X-Requested-With,apikey,x-client-info,x-supabase-api-version,Accept,Accept-Language,Content-Language"
-      - "traefik.http.middlewares.auth-cors.headers.accessControlExposeHeaders=X-Total-Count"
-      - "traefik.http.middlewares.auth-cors.headers.accessControlMaxAge=86400"
-      # Apply middleware to Coolify-managed router (add your actual router name from Coolify)
-      # Example: traefik.http.routers.wizardcore-supabase-auth.middlewares=auth-cors
-      # You MUST add this in Coolify UI: find the auto-generated router name and add middleware
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
@@ -30,14 +19,13 @@ services:
       GOTRUE_DISABLE_SIGNUP: 'false'
       GOTRUE_MAILER_AUTOCONFIRM: 'true'
       API_EXTERNAL_URL: https://auth.offensivewizard.com
-      # CORS configuration - must specify exact origin when using credentials
-      # Multiple origins separated by comma
-      GOTRUE_CORS_ALLOWED_ORIGINS: "https://offensivewizard.com,http://localhost:3000,http://localhost"
+      # CORS configuration - allow any origin for now to get login working
+      GOTRUE_CORS_ALLOWED_ORIGINS: "*"
       GOTRUE_CORS_ALLOWED_HEADERS: "Authorization,Content-Type,X-Client-Info,X-Requested-With,apikey,x-client-info,x-supabase-api-version,Accept,Accept-Language,Content-Language"
       GOTRUE_CORS_ALLOWED_METHODS: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
       GOTRUE_CORS_EXPOSED_HEADERS: "X-Total-Count"
-      # Enable CORS credentials
-      GOTRUE_CORS_ALLOW_CREDENTIALS: "true"
+      # Note: When using wildcard (*), Access-Control-Allow-Credentials cannot be true
+      # But the proxy approach bypasses this issue
     ports:
       - "9999:9999"
     depends_on:
