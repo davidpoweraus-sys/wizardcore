@@ -239,8 +239,9 @@ services:
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps=
       - NEXT_PUBLIC_JUDGE0_API_URL=https://judge0.offensivewizard.com
       - NEXT_PUBLIC_BACKEND_URL=https://offensivewizard.com/api
-      # Internal URL for server-side proxy (using persistent container name)
-      - SUPABASE_INTERNAL_URL=http://wizardcore-supabase-auth:9999
+      # Internal URL for server-side proxy
+      # Using external URL as fallback until Docker DNS is resolved
+      - SUPABASE_INTERNAL_URL=https://auth.offensivewizard.com
     depends_on:
       - backend
       - supabase-auth

@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Internal Supabase Auth URL (within Docker network)
-// Coolify may override container_name, so we try multiple options
-const GOTRUE_URL = process.env.SUPABASE_INTERNAL_URL || 
-                  process.env.SUPABASE_URL?.replace('https://', 'http://').replace(':443', ':9999') ||
-                  'http://wizardcore-supabase-auth:9999'
+// Supabase Auth URL
+// Using external URL to bypass Docker DNS issues in Coolify
+// This still solves CORS (proxy adds headers from same origin)
+const GOTRUE_URL = process.env.SUPABASE_INTERNAL_URL || 'https://auth.offensivewizard.com'
 
 // Handle OPTIONS preflight requests
 export async function OPTIONS(request: NextRequest) {
