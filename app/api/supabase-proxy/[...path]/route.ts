@@ -70,7 +70,11 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     const targetPath = path.join('/')
     const targetUrl = `${GOTRUE_URL}/${targetPath}${url.search}`
 
-    console.log('🔄 Proxying request to:', targetUrl)
+    console.log('🔄 Proxy Configuration:')
+    console.log('  GOTRUE_URL:', GOTRUE_URL)
+    console.log('  Target Path:', targetPath)
+    console.log('  Full URL:', targetUrl)
+    console.log('  Method:', request.method)
 
     // Copy headers from incoming request
     const headers = new Headers()
@@ -81,6 +85,8 @@ async function proxyRequest(request: NextRequest, path: string[]) {
       }
     })
 
+    console.log('📤 Making request to Supabase Auth...')
+
     // Make request to internal Supabase Auth
     const response = await fetch(targetUrl, {
       method: request.method,
@@ -90,10 +96,13 @@ async function proxyRequest(request: NextRequest, path: string[]) {
       duplex: 'half',
     })
 
+    console.log('✅ Proxy response status:', response.status)
+    console.log('✅ Response headers:', Object.fromEntries(response.headers.entries()))
+
     // Get response body
     const data = await response.text()
-
-    console.log('✅ Proxy response status:', response.status)
+    
+    console.log('✅ Response body length:', data.length)
 
     // Return response with CORS headers
     return new NextResponse(data, {
@@ -107,11 +116,24 @@ async function proxyRequest(request: NextRequest, path: string[]) {
       },
     })
   } catch (error) {
-    console.error('❌ Proxy error:', error)
+    console.error('❌ Proxy error details:')
+    console.error('  Error type:', error instanceof Error ? error.constructor.name : typeof error)
+    console.error('  Error message:', error instanceof Error ? error.message : String(error))
+    console.error('  GOTRUE_URL was:', GOTRUE_URL)
+    
+    // Check if it's a network error
+    if (error instanceof Error && (error.message.includes('ECONNREFUSED') || error.message.includes('ENOTFOUND'))) {
+      console.error('  ⚠️  Cannot reach supabase-auth service - check Docker network configuration')
+    }
+
     return new NextResponse(
       JSON.stringify({
         error: 'Proxy error',
         message: error instanceof Error ? error.message : 'Unknown error',
+        details: {
+          targetUrl: GOTRUE_URL,
+          errorType: error instanceof Error ? error.constructor.name : typeof error,
+        }
       }),
       {
         status: 500,
