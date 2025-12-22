@@ -6,6 +6,7 @@ services:
   # Supabase Auth (GoTrue)
   supabase-auth:
     container_name: wizardcore-supabase-auth
+    hostname: wizardcore-supabase-auth
     image: supabase/gotrue:v2.184.0
     environment:
       GOTRUE_API_HOST: 0.0.0.0
@@ -39,7 +40,10 @@ services:
       retries: 5
       start_period: 30s
     networks:
-      - wizardcore-network
+      wizardcore-network:
+        aliases:
+          - wizardcore-supabase-auth
+          - supabase-auth
 
   # Supabase PostgreSQL (for auth and metadata)
   supabase-postgres:

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Internal Supabase Auth URL (within Docker network)
-// Using persistent container_name for reliable DNS resolution
-const GOTRUE_URL = process.env.SUPABASE_INTERNAL_URL || 'http://wizardcore-supabase-auth:9999'
+// Coolify may override container_name, so we try multiple options
+const GOTRUE_URL = process.env.SUPABASE_INTERNAL_URL || 
+                  process.env.SUPABASE_URL?.replace('https://', 'http://').replace(':443', ':9999') ||
+                  'http://wizardcore-supabase-auth:9999'
 
 // Handle OPTIONS preflight requests
 export async function OPTIONS(request: NextRequest) {
