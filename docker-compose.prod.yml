@@ -3,6 +3,21 @@
 # Note: The 'version' field is omitted as it's obsolete in Docker Compose v2
 
 services:
+  # Image loader - Downloads and loads pre-built images from GitHub releases
+  # This runs first before all other services to ensure images are available locally
+  image-loader:
+    image: docker:24-cli
+    container_name: wizardcore-image-loader
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./load-images-from-github.sh:/load-images.sh
+    environment:
+      - PACKAGE_TYPE=${PACKAGE_TYPE:-cors-fix}
+      - RELEASE_TAG=${RELEASE_TAG:-latest}
+    entrypoint: ["/bin/sh", "/load-images.sh"]
+    restart: "no"  # Only runs once
+    networks:
+      - wizardcore-network
   # Supabase Auth (GoTrue)
   supabase-auth:
     container_name: wizardcore-supabase-auth
@@ -33,6 +48,8 @@ services:
     ports:
       - "9999:9999"
     depends_on:
+      image-loader:
+        condition: service_completed_successfully
       supabase-postgres:
         condition: service_healthy
     healthcheck:
@@ -246,8 +263,12 @@ services:
       - NEXT_PUBLIC_JUDGE0_API_URL=https://judge0.offensivewizard.com
       - NEXT_PUBLIC_BACKEND_URL=https://offensivewizard.com/api
     depends_on:
-      - backend
-      - supabase-auth
+      image-loader:
+        condition: service_completed_successfully
+      backend:
+        condition: service_started
+      supabase-auth:
+        condition: service_started
     networks:
       - wizardcore-network
 

@@ -1,0 +1,139 @@
+name: Build and Release Docker Images as Tar
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/**'
+      - 'components/**'
+      - 'lib/**'
+      - 'Dockerfile.nextjs'
+      - 'package.json'
+      - 'docker-compose.prod.yml'
+      - 'wizardcore-backend/**'
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.nextjs
+          tags: ghcr.io/davidpoweraus-sys/wizardcore-frontend:latest
+          load: true
+          build-args: |
+            NEXT_PUBLIC_SUPABASE_URL=https://auth.offensivewizard.com
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps=
+            NEXT_PUBLIC_JUDGE0_API_URL=https://judge0.offensivewizard.com
+            NEXT_PUBLIC_BACKEND_URL=https://offensivewizard.com/api
+
+      - name: Build Backend
+        run: |
+          cd wizardcore-backend
+          docker build -t wizardcore-backend:latest .
+          cd ..
+
+      - name: Pull Supabase Auth
+        run: docker pull supabase/gotrue:v2.184.0
+
+      - name: Export Images to Tar
+        run: |
+          echo "Exporting CORS fix images (Frontend + Supabase Auth)..."
+          docker save \
+            ghcr.io/davidpoweraus-sys/wizardcore-frontend:latest \
+            supabase/gotrue:v2.184.0 \
+            -o wizardcore-cors-fix.tar
+          
+          echo "Creating complete stack tar..."
+          docker pull postgres:15-alpine
+          docker pull postgres:16-alpine
+          docker pull redis:7-alpine
+          docker pull redis:7.2-alpine
+          docker pull judge0/judge0:latest
+          
+          docker save \
+            ghcr.io/davidpoweraus-sys/wizardcore-frontend:latest \
+            wizardcore-backend:latest \
+            supabase/gotrue:v2.184.0 \
+            postgres:15-alpine \
+            postgres:16-alpine \
+            redis:7-alpine \
+            redis:7.2-alpine \
+            judge0/judge0:latest \
+            -o wizardcore-complete-stack.tar
+
+      - name: Compress Tar Files
+        run: |
+          echo "Compressing CORS fix..."
+          gzip -9 wizardcore-cors-fix.tar
+          
+          echo "Compressing complete stack..."
+          gzip -9 wizardcore-complete-stack.tar
+          
+          ls -lh *.tar.gz
+
+      - name: Generate Release Tag
+        id: tag
+        run: |
+          TAG="v$(date +'%Y.%m.%d-%H%M')"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "Release tag: ${TAG}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: "WizardCore Docker Images ${{ steps.tag.outputs.tag }}"
+          body: |
+            ## 🚀 WizardCore Docker Images
+            
+            Automated build from commit ${{ github.sha }}
+            
+            ### 📦 Available Packages
+            
+            **CORS Fix (Recommended for quick deployments)**
+            - `wizardcore-cors-fix.tar.gz` (~90 MB)
+            - Contains: Frontend + Supabase Auth
+            - Use for: CORS fixes, frontend updates
+            
+            **Complete Stack**
+            - `wizardcore-complete-stack.tar.gz` (~3.4 GB)
+            - Contains: All 8 services
+            - Use for: Full deployments, new servers
+            
+            ### 🔧 Deployment
+            
+            ```bash
+            # Download and deploy
+            curl -L -o deploy.sh https://raw.githubusercontent.com/davidpoweraus-sys/wizardcore/main/deploy-from-release.sh
+            chmod +x deploy.sh
+            ./deploy.sh ${{ steps.tag.outputs.tag }}
+            ```
+            
+            Or use the deploy script in the repository.
+          files: |
+            wizardcore-cors-fix.tar.gz
+            wizardcore-complete-stack.tar.gz
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup
+        run: |
+          rm -f *.tar.gz
+          docker system prune -af
