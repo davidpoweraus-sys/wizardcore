@@ -44,15 +44,18 @@ if echo "$RELEASE_DATA" | grep -q "Not Found"; then
     exit 1
 fi
 
-# Extract download URL
+# Extract download URL using simple grep
 DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep -o "https://github.com/$REPO/releases/download/[^\"]*/$PACKAGE_NAME" | head -1)
 
 if [ -z "$DOWNLOAD_URL" ]; then
     echo "❌ Could not find $PACKAGE_NAME in release"
+    echo ""
+    echo "Available assets:"
+    echo "$RELEASE_DATA" | grep '"browser_download_url"'
     exit 1
 fi
 
-TAG_NAME=$(echo "$RELEASE_DATA" | grep '"tag_name"' | cut -d'"' -f4)
+TAG_NAME=$(echo "$RELEASE_DATA" | grep '"tag_name"' | head -1 | cut -d'"' -f4)
 echo "✅ Found release: $TAG_NAME"
 echo "📥 Downloading: $DOWNLOAD_URL"
 echo ""
