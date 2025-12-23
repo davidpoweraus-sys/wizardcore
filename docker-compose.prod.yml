@@ -8,6 +8,7 @@ services:
     container_name: wizardcore-supabase-auth
     hostname: wizardcore-supabase-auth
     image: supabase/gotrue:v2.184.0
+    pull_policy: never  # Use local image, don't pull from registry
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
@@ -223,11 +224,10 @@ services:
 
   # Next.js Frontend
   frontend:
-    # Use pre-built image from GitHub Container Registry to avoid memory issues
-    # Build locally: docker build -t ghcr.io/YOUR_USERNAME/wizardcore-frontend:latest -f Dockerfile.nextjs .
-    # Push: docker push ghcr.io/YOUR_USERNAME/wizardcore-frontend:latest
+    # Use pre-loaded image from local Docker cache (loaded via tar file)
+    # Images loaded via: docker load -i wizardcore-cors-fix.tar
     image: ghcr.io/davidpoweraus-sys/wizardcore-frontend:latest
-    pull_policy: always
+    pull_policy: never  # Use local image, don't pull from registry
     # Uncomment to build locally (requires 8GB+ RAM)
     # build:
     #   context: .
