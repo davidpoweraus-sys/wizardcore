@@ -25,6 +25,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Free up disk space
+        run: |
+          echo "Before cleanup:"
+          df -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker system prune -af
+          echo "After cleanup:"
+          df -h
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -50,7 +62,7 @@ jobs:
       - name: Pull Supabase Auth
         run: docker pull supabase/gotrue:v2.184.0
 
-      - name: Export Images to Tar
+      - name: Export CORS Fix Images
         run: |
           echo "Exporting CORS fix images (Frontend + Supabase Auth)..."
           docker save \
@@ -58,13 +70,27 @@ jobs:
             supabase/gotrue:v2.184.0 \
             -o wizardcore-cors-fix.tar
           
+          echo "CORS fix tar created!"
+          ls -lh wizardcore-cors-fix.tar
+
+      - name: Pull and Export Complete Stack (in stages to save space)
+        run: |
           echo "Creating complete stack tar..."
+          echo "This will be done in stages to avoid disk space issues"
+          
+          # Pull smaller images first
+          echo "Pulling PostgreSQL images..."
           docker pull postgres:15-alpine
           docker pull postgres:16-alpine
+          
+          echo "Pulling Redis images..."
           docker pull redis:7-alpine
           docker pull redis:7.2-alpine
+          
+          echo "Pulling Judge0 (large image, ~10GB)..."
           docker pull judge0/judge0:latest
           
+          echo "Exporting all images to tar..."
           docker save \
             ghcr.io/davidpoweraus-sys/wizardcore-frontend:latest \
             wizardcore-backend:latest \
@@ -75,16 +101,31 @@ jobs:
             redis:7.2-alpine \
             judge0/judge0:latest \
             -o wizardcore-complete-stack.tar
+          
+          echo "Complete stack tar created!"
+          ls -lh wizardcore-complete-stack.tar
+          
+          # Free up space immediately
+          echo "Cleaning up Docker to free space..."
+          docker system prune -af
+          df -h
 
       - name: Compress Tar Files
         run: |
+          echo "Disk space before compression:"
+          df -h
+          
           echo "Compressing CORS fix..."
           gzip -9 wizardcore-cors-fix.tar
           
           echo "Compressing complete stack..."
           gzip -9 wizardcore-complete-stack.tar
           
+          echo "Final tar files:"
           ls -lh *.tar.gz
+          
+          echo "Disk space after compression:"
+          df -h
 
       - name: Generate Release Tag
         id: tag
