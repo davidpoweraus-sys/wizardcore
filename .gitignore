@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Docker image archives
+*.tar
+*.tar.gz
+wizardcore-frontend-image*
+wizardcore-complete-stack*
