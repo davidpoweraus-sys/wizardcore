@@ -12,7 +12,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./load-images-from-github.sh:/load-images.sh
     environment:
-      - PACKAGE_TYPE=${PACKAGE_TYPE:-complete-stack}
+      - PACKAGE_TYPE=${PACKAGE_TYPE:-app}
       - RELEASE_TAG=${RELEASE_TAG:-latest}
     command: >
       sh -c "

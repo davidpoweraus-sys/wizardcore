@@ -62,16 +62,17 @@ jobs:
       - name: Pull Supabase Auth
         run: docker pull supabase/gotrue:v2.184.0
 
-      - name: Export CORS Fix Images
+      - name: Export App Images (Frontend + Backend + Auth)
         run: |
-          echo "Exporting CORS fix images (Frontend + Supabase Auth)..."
+          echo "Exporting app images (Frontend + Backend + Auth)..."
           docker save \
             ghcr.io/davidpoweraus-sys/wizardcore-frontend:latest \
+            wizardcore-backend:latest \
             supabase/gotrue:v2.184.0 \
-            -o wizardcore-cors-fix.tar
+            -o wizardcore-app.tar
           
-          echo "CORS fix tar created!"
-          ls -lh wizardcore-cors-fix.tar
+          echo "App package tar created!"
+          ls -lh wizardcore-app.tar
 
       - name: Pull and Export Complete Stack (in stages to save space)
         run: |
@@ -115,10 +116,10 @@ jobs:
           echo "Disk space before compression:"
           df -h
           
-          echo "Compressing CORS fix..."
-          gzip -9 wizardcore-cors-fix.tar
+          echo "Compressing app package..."
+          gzip -9 wizardcore-app.tar
           
-          echo "Compressing complete stack..."
+          echo "Compressing complete stack (for reference)..."
           gzip -9 wizardcore-complete-stack.tar
           
           echo "Final tar files:"
@@ -146,15 +147,15 @@ jobs:
             
             ### 📦 Available Packages
             
-            **CORS Fix (Recommended for quick deployments)**
-            - `wizardcore-cors-fix.tar.gz` (~90 MB)
-            - Contains: Frontend + Supabase Auth
-            - Use for: CORS fixes, frontend updates
+            **App Package (Recommended - Use with hybrid deployment)**
+            - `wizardcore-app.tar.gz` (~90 MB)
+            - Contains: Frontend + Backend + Supabase Auth
+            - Use for: Regular deployments (base images already on server)
             
-            **Complete Stack**
+            **Complete Stack (Reference/Backup)**
             - `wizardcore-complete-stack.tar.gz` (~3.4 GB)
             - Contains: All 8 services
-            - Use for: Full deployments, new servers
+            - Use for: Full deployments, new servers, manual bootstrap
             
             ### 🔧 Deployment
             
@@ -167,7 +168,7 @@ jobs:
             
             Or use the deploy script in the repository.
           files: |
-            wizardcore-cors-fix.tar.gz
+            wizardcore-app.tar.gz
             wizardcore-complete-stack.tar.gz
           draft: false
           prerelease: false
