@@ -5,9 +5,11 @@
 services:
   # Image loader - Downloads and loads pre-built images from GitHub releases
   # This runs first before all other services to ensure images are available locally
+  # DISABLE THIS if you've manually loaded images with: docker load -i wizardcore-complete-stack.tar.gz
   image-loader:
     image: alpine:latest
     container_name: wizardcore-image-loader
+    profiles: ["image-loader"]  # Optional - only runs if profile is active
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./load-images-from-github.sh:/load-images.sh
@@ -52,8 +54,6 @@ services:
     ports:
       - "9999:9999"
     depends_on:
-      image-loader:
-        condition: service_completed_successfully
       supabase-postgres:
         condition: service_healthy
     healthcheck:
@@ -233,8 +233,6 @@ services:
       - SUPABASE_URL=http://supabase-auth:9999
       - SUPABASE_JWT_SECRET=aNBMlTAljHvKyR2dPu6R6nyggeW2398Na3R4XL1+oyebUDiuzSO61nZzoVmRi0h4
     depends_on:
-      image-loader:
-        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       redis:
@@ -270,8 +268,6 @@ services:
       - NEXT_PUBLIC_JUDGE0_API_URL=https://judge0.offensivewizard.com
       - NEXT_PUBLIC_BACKEND_URL=https://offensivewizard.com/api
     depends_on:
-      image-loader:
-        condition: service_completed_successfully
       backend:
         condition: service_started
       supabase-auth:
