@@ -69,12 +69,17 @@ export async function DELETE(
 async function proxyRequest(request: NextRequest, path: string[]) {
   try {
     const url = new URL(request.url)
-    const targetPath = path.join('/')
+    let targetPath = path.join('/')
+    
+    // Strip /auth/v1 prefix if present (Supabase client adds this automatically)
+    targetPath = targetPath.replace(/^auth\/v1\//, '')
+    
     const targetUrl = `${GOTRUE_URL}/${targetPath}${url.search}`
 
     console.log('🔄 Proxy Configuration:')
     console.log('  GOTRUE_URL:', GOTRUE_URL)
-    console.log('  Target Path:', targetPath)
+    console.log('  Original Path:', path.join('/'))
+    console.log('  Stripped Path:', targetPath)
     console.log('  Full URL:', targetUrl)
     console.log('  Method:', request.method)
 

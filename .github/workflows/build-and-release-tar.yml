@@ -48,7 +48,7 @@ jobs:
           tags: ghcr.io/davidpoweraus-sys/wizardcore-frontend:latest
           load: true
           build-args: |
-            NEXT_PUBLIC_SUPABASE_URL=https://auth.offensivewizard.com
+            NEXT_PUBLIC_SUPABASE_URL=https://offensivewizard.com/supabase-proxy
             NEXT_PUBLIC_SUPABASE_ANON_KEY=uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps=
             NEXT_PUBLIC_JUDGE0_API_URL=https://judge0.offensivewizard.com
             NEXT_PUBLIC_BACKEND_URL=https://offensivewizard.com/api

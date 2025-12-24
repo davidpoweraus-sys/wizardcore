@@ -71,14 +71,14 @@ func (r *ProgressRepository) GetUserProgressTotals(userID uuid.UUID) (*models.Pr
 			COALESCE(SUM(upe.xp_earned), 0) as total_xp,
 			COALESCE(SUM(CASE WHEN upe.last_activity_at >= NOW() - INTERVAL '7 days' THEN upe.xp_earned ELSE 0 END), 0) as xp_this_week,
 			COALESCE(AVG(upe.progress_percentage), 0)::int as overall_progress,
-			COALESCE(MAX(u.streak_days), 0) as current_streak,
+			COALESCE(u.current_streak, 0) as current_streak,
 			COALESCE(SUM(upe.completed_modules), 0) as modules_completed,
 			COALESCE(SUM(p.module_count), 0) as modules_total
 		FROM users u
 		LEFT JOIN user_pathway_enrollments upe ON u.id = upe.user_id
 		LEFT JOIN pathways p ON upe.pathway_id = p.id
 		WHERE u.id = $1
-		GROUP BY u.id
+		GROUP BY u.id, u.current_streak
 	`
 	var totals models.ProgressTotals
 	err := r.db.QueryRow(query, userID).Scan(

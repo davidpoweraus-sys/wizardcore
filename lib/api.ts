@@ -22,7 +22,7 @@ export async function apiFetch<T = any>(
     headers.set('Authorization', `Bearer ${session.access_token}`)
   }
 
-  const url = `${BACKEND_URL}/api/v1${endpoint}`
+  const url = `${BACKEND_URL}/v1${endpoint}`
   const response = await fetch(url, {
     ...options,
     headers,

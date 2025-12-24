@@ -65,6 +65,35 @@ export default function RegisterPage() {
       console.log('✅ Registration successful!', data)
       console.log('👤 User:', data.user)
       console.log('🎫 Session:', data.session)
+
+      // Create user in wizardcore database
+      if (data.user) {
+        try {
+          console.log('📤 Creating user in wizardcore database...')
+          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/v1/users`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${data.session?.access_token}`,
+            },
+            body: JSON.stringify({
+              supabase_user_id: data.user.id,
+              email: data.user.email,
+              display_name: data.user.email?.split('@')[0] || 'User',
+            }),
+          })
+
+          if (!response.ok) {
+            console.error('⚠️ Failed to create user in wizardcore database:', await response.text())
+            // Continue anyway - user can still use the app, data will be missing
+          } else {
+            console.log('✅ User created in wizardcore database')
+          }
+        } catch (err) {
+          console.error('⚠️ Error creating user in wizardcore database:', err)
+          // Continue anyway
+        }
+      }
       
       router.push('/dashboard?registered=true')
     } catch (err) {

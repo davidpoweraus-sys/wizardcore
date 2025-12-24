@@ -14,7 +14,7 @@ export default function TestSignupPage() {
     setStatus('🧪 Testing...')
     
     const supabaseUrl = useProxy 
-      ? 'https://offensivewizard.com/api/supabase-proxy'
+      ? 'https://offensivewizard.com/supabase-proxy'
       : process.env.NEXT_PUBLIC_SUPABASE_URL!
 
     console.log('🧪 Test Configuration:')
@@ -73,8 +73,8 @@ export default function TestSignupPage() {
           </div>
           <p className="text-xs text-gray-600">
             {useProxy 
-              ? '✅ Using: /api/supabase-proxy (should work, no CORS)'
-              : '❌ Using: auth.offensivewizard.com (will have CORS error)'
+              ? '✅ Using: /supabase-proxy (should work, no CORS)'
+              : '❌ Using: Direct URL (may have CORS error if not configured)'
             }
           </p>
         </div>
