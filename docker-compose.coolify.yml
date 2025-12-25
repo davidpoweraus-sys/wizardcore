@@ -29,7 +29,13 @@ services:
     container_name: backend
     image: limpet/wizardcore-backend:latest
     environment:
+      # Database connection - using explicit variables for Coolify compatibility
       - DATABASE_URL=postgresql://wizardcore:wizardcore_password@postgres:5432/wizardcore?sslmode=disable
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=wizardcore
+      - DATABASE_PASSWORD=wizardcore_password
+      - DATABASE_NAME=wizardcore
       - SUPABASE_URL=http://supabase-auth:9999
       - SUPABASE_JWT_SECRET=aNBMlTAljHvKyR2dPu6R6nyggeW2398Na3R4XL1+oyebUDiuzSO61nZzoVmRi0h4
       - REDIS_URL=redis:6379
