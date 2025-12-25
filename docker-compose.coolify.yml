@@ -2,19 +2,16 @@
 # This builds from source instead of using pre-built images
 
 services:
-  # Frontend - Build from Dockerfile
+  # Frontend - Pull from Docker Hub
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.nextjs
-      args:
-        NEXT_PUBLIC_SUPABASE_URL: https://offensivewizard.com/supabase-proxy
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps=
-        NEXT_PUBLIC_JUDGE0_API_URL: https://judge0.offensivewizard.com
-        NEXT_PUBLIC_BACKEND_URL: https://offensivewizard.com/api
+    image: limpet/wizardcore-frontend:latest
     ports:
       - "3000:3000"
     environment:
+      - NEXT_PUBLIC_SUPABASE_URL=https://offensivewizard.com/supabase-proxy
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps=
+      - NEXT_PUBLIC_JUDGE0_API_URL=https://judge0.offensivewizard.com
+      - NEXT_PUBLIC_BACKEND_URL=https://offensivewizard.com/api
       - SUPABASE_INTERNAL_URL=http://supabase-auth:9999
     depends_on:
       backend:
@@ -25,11 +22,9 @@ services:
       - wizardcore-network
     restart: unless-stopped
 
-  # Backend - Build from Dockerfile
+  # Backend - Pull from Docker Hub
   backend:
-    build:
-      context: ./wizardcore-backend
-      dockerfile: Dockerfile
+    image: limpet/wizardcore-backend:latest
     environment:
       - DATABASE_URL=postgresql://wizardcore:wizardcore_password@postgres:5432/wizardcore?sslmode=disable
       - SUPABASE_URL=http://supabase-auth:9999

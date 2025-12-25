@@ -46,7 +46,9 @@ func Setup(db *sql.DB, cfg *config.Config, logger *zap.Logger, hub *websocket.Hu
 	matchRepo := repositories.NewMatchRepository(db)
 	searchRepo := repositories.NewSearchRepository(db)
 	creatorRepo := repositories.NewContentCreatorRepository(db)
-	rbacRepo := repositories.NewRBACRepository(db, logger)
+	// rbacRepo := repositories.NewRBACRepository(db, logger) // Not currently used
+	activityRepo := repositories.NewActivityRepository(db, logger)
+	preferencesRepo := repositories.NewPreferencesRepository(db)
 
 	// Initialize Judge0 client
 	judge0Client := judge0.NewClient(cfg.Judge0APIURL, cfg.Judge0APIKey)
@@ -64,21 +66,22 @@ func Setup(db *sql.DB, cfg *config.Config, logger *zap.Logger, hub *websocket.Hu
 	}
 
 	// Initialize services
-	userService := services.NewUserService(userRepo)
+	userService := services.NewUserService(userRepo, preferencesRepo)
 	pathwayService := services.NewPathwayService(pathwayRepo, userRepo)
 	exerciseService := services.NewExerciseService(exerciseRepo)
 	practiceService := services.NewPracticeService(matchRepo, userRepo, exerciseRepo)
-	submissionService := services.NewSubmissionService(submissionRepo, exerciseRepo, userRepo, judge0Client, practiceService)
+	progressService := services.NewProgressService(progressRepo, userRepo, pathwayRepo, exerciseRepo, activityRepo, logger)
+	submissionService := services.NewSubmissionService(submissionRepo, exerciseRepo, userRepo, judge0Client, practiceService, progressService)
 	achievementService := services.NewAchievementService(achievementRepo, userRepo)
 	leaderboardService := services.NewLeaderboardService(leaderboardRepo, userRepo, redisClient)
-	progressService := services.NewProgressService(progressRepo, userRepo, pathwayRepo, exerciseRepo)
 	searchService := services.NewSearchService(searchRepo)
 	creatorService := services.NewContentCreatorService(creatorRepo, userRepo)
-	rbacService := services.NewRBACService(rbacRepo, userRepo, logger)
+	activityService := services.NewActivityService(activityRepo, progressRepo, logger)
+	// rbacService := services.NewRBACService(rbacRepo, userRepo, logger) // Not currently used
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(userService, logger)
-	userHandler := handlers.NewUserHandler(userService, progressService, logger)
+	userHandler := handlers.NewUserHandler(userService, progressService, activityService, logger)
 	pathwayHandler := handlers.NewPathwayHandler(pathwayService, userService, logger)
 	exerciseHandler := handlers.NewExerciseHandler(exerciseService, logger)
 	submissionHandler := handlers.NewSubmissionHandler(submissionService, logger)
@@ -89,7 +92,6 @@ func Setup(db *sql.DB, cfg *config.Config, logger *zap.Logger, hub *websocket.Hu
 	searchHandler := handlers.NewSearchHandler(searchService, logger)
 	websocketHandler := handlers.NewWebSocketHandler(hub)
 	creatorHandler := handlers.NewContentCreatorHandler(creatorService, logger)
-	rbacHandler := handlers.NewRBACHandler(rbacService, logger)
 
 	// API routes
 	api := r.Group("/api/v1")
@@ -100,11 +102,6 @@ func Setup(db *sql.DB, cfg *config.Config, logger *zap.Logger, hub *websocket.Hu
 		// Protected routes
 		protected := api.Group("")
 		protected.Use(middleware.AuthMiddleware(cfg.SupabaseJWTSecret))
-		// Inject RBAC service into context for RBAC middleware
-		protected.Use(func(c *gin.Context) {
-			c.Set("rbac_service", rbacService)
-			c.Next()
-		})
 		{
 			// User routes
 			protected.GET("/users/me", userHandler.GetCurrentUser)
@@ -175,8 +172,6 @@ func Setup(db *sql.DB, cfg *config.Config, logger *zap.Logger, hub *websocket.Hu
 				creator.GET("/pathways", creatorHandler.GetPathways)
 				creator.PUT("/pathways/:id", creatorHandler.UpdatePathway)
 				creator.DELETE("/pathways/:id", creatorHandler.DeletePathway)
-				creator.GET("/pathways/:id/export", creatorHandler.ExportPathway)
-				creator.POST("/pathways/import", creatorHandler.ImportPathway)
 
 				// Modules
 				creator.POST("/modules", creatorHandler.CreateModule)
@@ -188,8 +183,6 @@ func Setup(db *sql.DB, cfg *config.Config, logger *zap.Logger, hub *websocket.Hu
 				creator.POST("/exercises", creatorHandler.CreateExercise)
 				creator.GET("/exercises", creatorHandler.GetExercises)
 				creator.GET("/exercises/:id", creatorHandler.GetExercise)
-				creator.PUT("/exercises/:id", creatorHandler.UpdateExercise)
-				creator.DELETE("/exercises/:id", creatorHandler.DeleteExercise)
 
 				// Reviews
 				creator.POST("/reviews", creatorHandler.SubmitForReview)
@@ -202,21 +195,6 @@ func Setup(db *sql.DB, cfg *config.Config, logger *zap.Logger, hub *websocket.Hu
 			{
 				// Content review
 				admin.POST("/reviews", creatorHandler.ReviewContent)
-
-				// RBAC Management (admin only)
-				admin.GET("/rbac/roles", rbacHandler.ListRoles)
-				admin.POST("/rbac/roles", rbacHandler.CreateRole)
-				admin.GET("/rbac/roles/:id", rbacHandler.GetRole)
-				admin.PUT("/rbac/roles/:id", rbacHandler.UpdateRole)
-				admin.DELETE("/rbac/roles/:id", rbacHandler.DeleteRole)
-				admin.POST("/rbac/permissions", rbacHandler.CreatePermission)
-				admin.GET("/rbac/users/:user_id/roles", rbacHandler.GetUserRoles)
-				admin.POST("/rbac/users/:user_id/roles", rbacHandler.AssignRole)
-				admin.DELETE("/rbac/users/:user_id/roles/:role_id", rbacHandler.RemoveRole)
-				admin.POST("/rbac/roles/:role_id/permissions", rbacHandler.GrantPermission)
-				admin.DELETE("/rbac/roles/:role_id/permissions/:permission_id", rbacHandler.RevokePermission)
-				admin.GET("/rbac/users/:user_id/permissions", rbacHandler.GetUserPermissions)
-				admin.POST("/rbac/check-permission", rbacHandler.CheckPermission)
 			}
 		}
 	}

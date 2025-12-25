@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -9,11 +10,15 @@ import (
 )
 
 type UserService struct {
-	userRepo *repositories.UserRepository
+	userRepo        *repositories.UserRepository
+	preferencesRepo *repositories.PreferencesRepository
 }
 
-func NewUserService(userRepo *repositories.UserRepository) *UserService {
-	return &UserService{userRepo: userRepo}
+func NewUserService(userRepo *repositories.UserRepository, preferencesRepo *repositories.PreferencesRepository) *UserService {
+	return &UserService{
+		userRepo:        userRepo,
+		preferencesRepo: preferencesRepo,
+	}
 }
 
 func (s *UserService) CreateUser(user *models.User) error {
@@ -89,4 +94,22 @@ func (s *UserService) UpdateUser(user *models.User) error {
 
 func (s *UserService) DeleteUser(id uuid.UUID) error {
 	return s.userRepo.Delete(id)
+}
+
+// GetUserPreferences retrieves preferences for a user
+func (s *UserService) GetUserPreferences(ctx context.Context, userID uuid.UUID) (*models.UserPreferences, error) {
+	preferences, err := s.preferencesRepo.GetUserPreferences(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user preferences: %w", err)
+	}
+	return preferences, nil
+}
+
+// UpdateUserPreferences updates preferences for a user
+func (s *UserService) UpdateUserPreferences(ctx context.Context, userID uuid.UUID, updates map[string]interface{}) error {
+	err := s.preferencesRepo.UpdateUserPreferences(ctx, userID, updates)
+	if err != nil {
+		return fmt.Errorf("failed to update user preferences: %w", err)
+	}
+	return nil
 }

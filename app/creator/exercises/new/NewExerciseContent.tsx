@@ -1,0 +1,85 @@
+'use client'
+
+import { useRouter, useSearchParams } from 'next/navigation'
+import ExerciseBuilder from '@/components/creator/ExerciseBuilder'
+import { api } from '@/lib/api'
+
+export default function NewExerciseContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const moduleId = searchParams.get('module_id')
+
+  if (!moduleId) {
+    return (
+      <div className="min-h-screen bg-bg-primary flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-text-primary mb-2">
+            Module ID Required
+          </h1>
+          <p className="text-text-secondary">
+            Please select a module to create an exercise.
+          </p>
+          <button
+            onClick={() => router.push('/creator/modules')}
+            className="mt-4 px-6 py-2 bg-accent-primary text-white rounded-lg hover:bg-accent-secondary"
+          >
+            Go to Modules
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const handleSave = async (exerciseData: any) => {
+    try {
+      // Transform test cases to match backend format
+      const testCases = exerciseData.test_cases.map((tc: any, index: number) => ({
+        input: tc.input || null,
+        expected_output: tc.expected_output,
+        is_hidden: tc.is_hidden,
+        points: tc.points,
+        sort_order: index,
+      }))
+
+      const payload = {
+        module_id: moduleId,
+        title: exerciseData.title,
+        difficulty: exerciseData.difficulty,
+        points: exerciseData.points,
+        time_limit_minutes: exerciseData.time_limit_minutes || null,
+        sort_order: 0, // You might want to calculate this based on existing exercises
+        objectives: exerciseData.objectives.filter((o: string) => o.trim()),
+        content: exerciseData.content || null,
+        examples: null, // You can add examples support later
+        description: exerciseData.description || null,
+        constraints: exerciseData.constraints.filter((c: string) => c.trim()),
+        hints: exerciseData.hints.filter((h: string) => h.trim()),
+        starter_code: exerciseData.starter_code || null,
+        solution_code: exerciseData.solution_code,
+        language_id: exerciseData.language_id,
+        tags: exerciseData.tags,
+        status: 'draft',
+        test_cases: testCases,
+      }
+
+      const response = await api.post('/content-creator/exercises', payload)
+      
+      alert('Exercise created successfully!')
+      router.push(`/creator/exercises/${response.id}`)
+    } catch (error: any) {
+      console.error('Failed to create exercise:', error)
+      alert(`Failed to create exercise: ${error.message}`)
+    }
+  }
+
+  return (
+    <ExerciseBuilder
+      moduleId={moduleId}
+      onSave={handleSave}
+      onPreview={(data) => {
+        console.log('Preview:', data)
+        // TODO: Open preview modal
+      }}
+    />
+  )
+}

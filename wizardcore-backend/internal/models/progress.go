@@ -30,12 +30,13 @@ type ProgressResponse struct {
 
 // ProgressTotals aggregates overall progress
 type ProgressTotals struct {
-	TotalXP          int `json:"total_xp"`
-	XPThisWeek       int `json:"xp_this_week"`
-	OverallProgress  int `json:"overall_progress"`
-	CurrentStreak    int `json:"current_streak"`
-	ModulesCompleted int `json:"modules_completed"`
-	ModulesTotal     int `json:"modules_total"`
+	TotalXP               int `json:"total_xp"`
+	XPThisWeek            int `json:"xp_this_week"`
+	OverallProgress       int `json:"overall_progress"`
+	CurrentStreak         int `json:"current_streak"`
+	ModulesCompleted      int `json:"modules_completed"`
+	ModulesTotal          int `json:"modules_total"`
+	TotalStudyTimeMinutes int `json:"total_study_time_minutes"`
 }
 
 // Milestone represents a user milestone
@@ -51,11 +52,11 @@ type Milestone struct {
 
 // WeeklyActivity represents weekly activity data
 type WeeklyActivity struct {
-	WeeklyData        []DailyActivity `json:"weekly_data"`
-	AvgDailyTime      int             `json:"avg_daily_time_minutes"`
-	CompletionRate    int             `json:"completion_rate"`
-	CurrentStreak     int             `json:"current_streak"`
-	TrendPercentage   int             `json:"trend_percentage"`
+	WeeklyData      []DailyActivity `json:"weekly_data"`
+	AvgDailyTime    int             `json:"avg_daily_time_minutes"`
+	CompletionRate  int             `json:"completion_rate"`
+	CurrentStreak   int             `json:"current_streak"`
+	TrendPercentage int             `json:"trend_percentage"`
 }
 
 // DailyActivity represents a single day's activity

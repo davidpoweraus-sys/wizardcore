@@ -16,15 +16,17 @@ type SubmissionService struct {
 	userRepo        *repositories.UserRepository
 	judge0Client    *judge0.Client
 	practiceService *PracticeService
+	progressService *ProgressService
 }
 
-func NewSubmissionService(submissionRepo *repositories.SubmissionRepository, exerciseRepo *repositories.ExerciseRepository, userRepo *repositories.UserRepository, judge0Client *judge0.Client, practiceService *PracticeService) *SubmissionService {
+func NewSubmissionService(submissionRepo *repositories.SubmissionRepository, exerciseRepo *repositories.ExerciseRepository, userRepo *repositories.UserRepository, judge0Client *judge0.Client, practiceService *PracticeService, progressService *ProgressService) *SubmissionService {
 	return &SubmissionService{
 		submissionRepo:  submissionRepo,
 		exerciseRepo:    exerciseRepo,
 		userRepo:        userRepo,
 		judge0Client:    judge0Client,
 		practiceService: practiceService,
+		progressService: progressService,
 	}
 }
 
@@ -141,6 +143,24 @@ func (s *SubmissionService) CreateSubmissionWithMatch(submission *models.Submiss
 		user.TotalXP += submission.PointsEarned
 		if err := s.userRepo.Update(user); err != nil {
 			fmt.Printf("failed to update user XP: %v\n", err)
+		}
+	}
+
+	// Record submission activity for progress tracking
+	if s.progressService != nil && submission.PointsEarned > 0 {
+		// Estimate time spent - in a real app, this would come from the frontend
+		// or we'd calculate it based on submission timestamps
+		estimatedTimeMinutes := 5 // Default estimate
+
+		err = s.progressService.RecordSubmissionActivity(
+			submission.UserID,
+			submission.ExerciseID,
+			submission.PointsEarned,
+			estimatedTimeMinutes,
+		)
+		if err != nil {
+			// Log error but don't fail the submission
+			fmt.Printf("failed to record submission activity: %v\n", err)
 		}
 	}
 

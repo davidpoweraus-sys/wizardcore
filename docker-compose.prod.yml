@@ -221,8 +221,8 @@ services:
 
   # Backend API
   backend:
-    image: wizardcore-backend:latest
-    pull_policy: never  # Use local image loaded by image-loader
+    image: limpet/wizardcore-backend:latest
+    pull_policy: always  # Pull from Docker Hub
     # Port not exposed on host; accessed via internal network or reverse proxy
     environment:
       - PORT=8080
@@ -246,10 +246,9 @@ services:
 
   # Next.js Frontend
   frontend:
-    # Use pre-loaded image from local Docker cache (loaded via tar file)
-    # Images loaded via: docker load -i wizardcore-cors-fix.tar
-    image: ghcr.io/davidpoweraus-sys/wizardcore-frontend:latest
-    pull_policy: never  # Use local image, don't pull from registry
+    # Pull from Docker Hub
+    image: limpet/wizardcore-frontend:latest
+    pull_policy: always  # Pull from Docker Hub
     # Uncomment to build locally (requires 8GB+ RAM)
     # build:
     #   context: .

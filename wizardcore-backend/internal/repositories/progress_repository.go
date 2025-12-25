@@ -73,10 +73,12 @@ func (r *ProgressRepository) GetUserProgressTotals(userID uuid.UUID) (*models.Pr
 			COALESCE(AVG(upe.progress_percentage), 0)::int as overall_progress,
 			COALESCE(u.current_streak, 0) as current_streak,
 			COALESCE(SUM(upe.completed_modules), 0) as modules_completed,
-			COALESCE(SUM(p.module_count), 0) as modules_total
+			COALESCE(SUM(p.module_count), 0) as modules_total,
+			COALESCE(SUM(uda.time_spent_minutes), 0) as total_study_time_minutes
 		FROM users u
 		LEFT JOIN user_pathway_enrollments upe ON u.id = upe.user_id
 		LEFT JOIN pathways p ON upe.pathway_id = p.id
+		LEFT JOIN user_daily_activity uda ON u.id = uda.user_id
 		WHERE u.id = $1
 		GROUP BY u.id, u.current_streak
 	`
@@ -88,6 +90,7 @@ func (r *ProgressRepository) GetUserProgressTotals(userID uuid.UUID) (*models.Pr
 		&totals.CurrentStreak,
 		&totals.ModulesCompleted,
 		&totals.ModulesTotal,
+		&totals.TotalStudyTimeMinutes,
 	)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
