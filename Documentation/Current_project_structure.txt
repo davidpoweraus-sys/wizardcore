@@ -1,0 +1,41 @@
+WizardCore Project - Complete Overview
+I've thoroughly familiarized myself with your WizardCore cybersecurity learning platform. Here's what I've learned:
+Architecture Overview
+Stack:
+- Frontend: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4
+- Backend: Go (Gin framework), PostgreSQL
+- Authentication: Supabase Auth
+- Code Execution: Judge0 (self-hosted)
+- Real-time: WebSockets
+- Caching: Redis (optional)
+Current Database Schema (11 Migrations)
+1. Users - Core user profiles with Supabase integration, XP, streaks, rankings
+2. Pathways - Courses with levels, modules, ratings, prerequisites
+3. Modules - Learning units within pathways
+4. Exercises - Coding challenges with Judge0 integration, test cases
+5. Submissions - User code submissions with Judge0 results
+6. Progress - User progress tracking
+7. Achievements - Gamification system
+8. Leaderboard - Competitive rankings
+9. Matches - Practice arena/competitive matches
+10. Notifications - User notifications
+11. Deadlines - Course deadlines
+12. Certificates - Course completion certificates
+Current Features
+User Features:
+- Profile management with social links
+- Pathway enrollment and progress tracking
+- Exercise solving with Judge0 code execution
+- Achievements and leaderboard
+- Practice arena for competitive coding
+- Real-time WebSocket updates
+- XP and streak tracking
+Technical Features:
+- Supabase JWT authentication
+- Role-based access control middleware
+- Rate limiting
+- CORS configuration
+- Database migrations
+- Judge0 integration (Python, C, C++, Java, JavaScript, SQL)
+- Batch submission support
+- Real-time collaboration via WebSockets

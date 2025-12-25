@@ -45,6 +45,8 @@ func Setup(db *sql.DB, cfg *config.Config, logger *zap.Logger, hub *websocket.Hu
 	leaderboardRepo := repositories.NewLeaderboardRepository(db)
 	matchRepo := repositories.NewMatchRepository(db)
 	searchRepo := repositories.NewSearchRepository(db)
+	creatorRepo := repositories.NewContentCreatorRepository(db)
+	rbacRepo := repositories.NewRBACRepository(db, logger)
 
 	// Initialize Judge0 client
 	judge0Client := judge0.NewClient(cfg.Judge0APIURL, cfg.Judge0APIKey)
@@ -71,6 +73,8 @@ func Setup(db *sql.DB, cfg *config.Config, logger *zap.Logger, hub *websocket.Hu
 	leaderboardService := services.NewLeaderboardService(leaderboardRepo, userRepo, redisClient)
 	progressService := services.NewProgressService(progressRepo, userRepo, pathwayRepo, exerciseRepo)
 	searchService := services.NewSearchService(searchRepo)
+	creatorService := services.NewContentCreatorService(creatorRepo, userRepo)
+	rbacService := services.NewRBACService(rbacRepo, userRepo, logger)
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(userService, logger)
@@ -84,6 +88,8 @@ func Setup(db *sql.DB, cfg *config.Config, logger *zap.Logger, hub *websocket.Hu
 	practiceHandler := handlers.NewPracticeHandler(practiceService, logger)
 	searchHandler := handlers.NewSearchHandler(searchService, logger)
 	websocketHandler := handlers.NewWebSocketHandler(hub)
+	creatorHandler := handlers.NewContentCreatorHandler(creatorService, logger)
+	rbacHandler := handlers.NewRBACHandler(rbacService, logger)
 
 	// API routes
 	api := r.Group("/api/v1")
@@ -94,6 +100,11 @@ func Setup(db *sql.DB, cfg *config.Config, logger *zap.Logger, hub *websocket.Hu
 		// Protected routes
 		protected := api.Group("")
 		protected.Use(middleware.AuthMiddleware(cfg.SupabaseJWTSecret))
+		// Inject RBAC service into context for RBAC middleware
+		protected.Use(func(c *gin.Context) {
+			c.Set("rbac_service", rbacService)
+			c.Next()
+		})
 		{
 			// User routes
 			protected.GET("/users/me", userHandler.GetCurrentUser)
@@ -148,6 +159,65 @@ func Setup(db *sql.DB, cfg *config.Config, logger *zap.Logger, hub *websocket.Hu
 
 			// WebSocket route
 			protected.GET("/ws", websocketHandler.ServeWebSocket)
+
+			// Content Creator routes (requires content_creator or admin role)
+			creator := protected.Group("/content-creator")
+			creator.Use(middleware.ContentCreatorMiddleware(db))
+			{
+				// Profile
+				creator.POST("/profile", creatorHandler.CreateProfile)
+				creator.GET("/profile", creatorHandler.GetProfile)
+				creator.PUT("/profile", creatorHandler.UpdateProfile)
+				creator.GET("/stats", creatorHandler.GetStats)
+
+				// Pathways
+				creator.POST("/pathways", creatorHandler.CreatePathway)
+				creator.GET("/pathways", creatorHandler.GetPathways)
+				creator.PUT("/pathways/:id", creatorHandler.UpdatePathway)
+				creator.DELETE("/pathways/:id", creatorHandler.DeletePathway)
+				creator.GET("/pathways/:id/export", creatorHandler.ExportPathway)
+				creator.POST("/pathways/import", creatorHandler.ImportPathway)
+
+				// Modules
+				creator.POST("/modules", creatorHandler.CreateModule)
+				creator.GET("/modules", creatorHandler.GetModules)
+				creator.PUT("/modules/:id", creatorHandler.UpdateModule)
+				creator.DELETE("/modules/:id", creatorHandler.DeleteModule)
+
+				// Exercises
+				creator.POST("/exercises", creatorHandler.CreateExercise)
+				creator.GET("/exercises", creatorHandler.GetExercises)
+				creator.GET("/exercises/:id", creatorHandler.GetExercise)
+				creator.PUT("/exercises/:id", creatorHandler.UpdateExercise)
+				creator.DELETE("/exercises/:id", creatorHandler.DeleteExercise)
+
+				// Reviews
+				creator.POST("/reviews", creatorHandler.SubmitForReview)
+				creator.GET("/reviews", creatorHandler.GetReviews)
+			}
+
+			// Admin routes
+			admin := protected.Group("/admin")
+			admin.Use(middleware.AdminMiddleware(db))
+			{
+				// Content review
+				admin.POST("/reviews", creatorHandler.ReviewContent)
+
+				// RBAC Management (admin only)
+				admin.GET("/rbac/roles", rbacHandler.ListRoles)
+				admin.POST("/rbac/roles", rbacHandler.CreateRole)
+				admin.GET("/rbac/roles/:id", rbacHandler.GetRole)
+				admin.PUT("/rbac/roles/:id", rbacHandler.UpdateRole)
+				admin.DELETE("/rbac/roles/:id", rbacHandler.DeleteRole)
+				admin.POST("/rbac/permissions", rbacHandler.CreatePermission)
+				admin.GET("/rbac/users/:user_id/roles", rbacHandler.GetUserRoles)
+				admin.POST("/rbac/users/:user_id/roles", rbacHandler.AssignRole)
+				admin.DELETE("/rbac/users/:user_id/roles/:role_id", rbacHandler.RemoveRole)
+				admin.POST("/rbac/roles/:role_id/permissions", rbacHandler.GrantPermission)
+				admin.DELETE("/rbac/roles/:role_id/permissions/:permission_id", rbacHandler.RevokePermission)
+				admin.GET("/rbac/users/:user_id/permissions", rbacHandler.GetUserPermissions)
+				admin.POST("/rbac/check-permission", rbacHandler.CheckPermission)
+			}
 		}
 	}
 

@@ -1,0 +1,136 @@
+{
+  "pathway": {
+    "title": "Python for Cybersecurity",
+    "subtitle": "Learn Python for penetration testing and security automation",
+    "description": "A comprehensive pathway teaching Python programming with a focus on cybersecurity applications including network scanning, exploit development, and security automation.",
+    "level": "Beginner",
+    "duration_weeks": 8,
+    "color_gradient": "from-blue-500 to-purple-600",
+    "icon": "🐍",
+    "prerequisites": ["Basic computer literacy"],
+    "sort_order": 1,
+    "modules": [
+      {
+        "title": "Python Fundamentals",
+        "description": "Learn Python basics including variables, data types, control structures, and functions.",
+        "sort_order": 1,
+        "estimated_hours": 10,
+        "xp_reward": 100,
+        "exercises": [
+          {
+            "title": "Hello World with a Twist",
+            "difficulty": "BEGINNER",
+            "points": 10,
+            "time_limit_minutes": 15,
+            "sort_order": 1,
+            "objectives": ["Write your first Python program", "Learn basic output formatting"],
+            "content": "# Hello World with a Twist\n\nWrite a Python program that prints \"Hello, Cybersecurity World!\" to the console.\n\n## Requirements:\n- Use the `print()` function\n- The message must be exactly: \"Hello, Cybersecurity World!\"\n\n## Example Output:\n```\nHello, Cybersecurity World!\n```",
+            "description": "Your first Python program in the cybersecurity context",
+            "constraints": ["Must use print() function", "Output must match exactly"],
+            "hints": ["Remember Python is case-sensitive", "Check your quotation marks"],
+            "starter_code": "# Write your solution here\n",
+            "solution_code": "print(\"Hello, Cybersecurity World!\")",
+            "language_id": 71,
+            "tags": ["python", "beginner", "hello-world"],
+            "test_cases": [
+              {
+                "input": null,
+                "expected_output": "Hello, Cybersecurity World!",
+                "is_hidden": false,
+                "points": 10,
+                "sort_order": 1
+              }
+            ]
+          },
+          {
+            "title": "Password Strength Checker",
+            "difficulty": "BEGINNER",
+            "points": 20,
+            "time_limit_minutes": 30,
+            "sort_order": 2,
+            "objectives": ["Work with strings and conditionals", "Implement basic security logic"],
+            "content": "# Password Strength Checker\n\nCreate a program that checks if a password meets basic security requirements.\n\n## Requirements:\n- Password must be at least 8 characters long\n- Must contain at least one uppercase letter\n- Must contain at least one lowercase letter\n- Must contain at least one digit\n\nYour function should return `True` if the password meets all requirements, `False` otherwise.\n\n## Function Signature:\n```python\ndef is_strong_password(password: str) -> bool:\n    # Your code here\n    pass\n```\n\n## Examples:\n```python\nis_strong_password(\"Weak\")  # Returns False\nis_strong_password(\"StrongPass123\")  # Returns True\n```",
+            "description": "Implement basic password validation logic",
+            "constraints": ["Must use the function signature provided", "No external libraries"],
+            "hints": ["Use string methods like isupper(), islower(), isdigit()", "Check length with len()"],
+            "starter_code": "def is_strong_password(password: str) -> bool:\n    # Your code here\n    pass",
+            "solution_code": "def is_strong_password(password: str) -> bool:\n    if len(password) < 8:\n        return False\n    \n    has_upper = any(c.isupper() for c in password)\n    has_lower = any(c.islower() for c in password)\n    has_digit = any(c.isdigit() for c in password)\n    \n    return has_upper and has_lower and has_digit",
+            "language_id": 71,
+            "tags": ["python", "security", "validation"],
+            "test_cases": [
+              {
+                "input": "\"Weak\"",
+                "expected_output": "False",
+                "is_hidden": false,
+                "points": 5,
+                "sort_order": 1
+              },
+              {
+                "input": "\"StrongPass123\"",
+                "expected_output": "True",
+                "is_hidden": false,
+                "points": 5,
+                "sort_order": 2
+              },
+              {
+                "input": "\"nocaps123\"",
+                "expected_output": "False",
+                "is_hidden": true,
+                "points": 5,
+                "sort_order": 3
+              },
+              {
+                "input": "\"NOLOWER123\"",
+                "expected_output": "False",
+                "is_hidden": true,
+                "points": 5,
+                "sort_order": 4
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Network Programming",
+        "description": "Learn to work with sockets and network protocols in Python.",
+        "sort_order": 2,
+        "estimated_hours": 15,
+        "xp_reward": 150,
+        "exercises": [
+          {
+            "title": "Port Scanner",
+            "difficulty": "INTERMEDIATE",
+            "points": 50,
+            "time_limit_minutes": 45,
+            "sort_order": 1,
+            "objectives": ["Learn socket programming", "Implement basic port scanning"],
+            "content": "# Basic Port Scanner\n\nCreate a simple port scanner that checks if specific ports are open on a target host.\n\n## Requirements:\n- Take a hostname/IP and list of ports as input\n- Check each port to see if it's open\n- Return a list of open ports\n\n## Function Signature:\n```python\ndef scan_ports(host: str, ports: list) -> list:\n    # Your code here\n    pass\n```\n\n## Example:\n```python\nopen_ports = scan_ports(\"127.0.0.1\", [80, 443, 8080])\nprint(f\"Open ports: {open_ports}\")\n```",
+            "description": "Implement a basic port scanning utility",
+            "constraints": ["Use socket module", "Handle connection timeouts properly"],
+            "hints": ["Use socket.socket()", "Set timeout with socket.settimeout()", "Use try-except for connection errors"],
+            "starter_code": "import socket\n\ndef scan_ports(host: str, ports: list) -> list:\n    open_ports = []\n    # Your code here\n    return open_ports",
+            "solution_code": "import socket\n\ndef scan_ports(host: str, ports: list) -> list:\n    open_ports = []\n    for port in ports:\n        try:\n            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\n            sock.settimeout(1)\n            result = sock.connect_ex((host, port))\n            if result == 0:\n                open_ports.append(port)\n            sock.close()\n        except:\n            pass\n    return open_ports",
+            "language_id": 71,
+            "tags": ["python", "networking", "security"],
+            "test_cases": [
+              {
+                "input": "\"127.0.0.1\", [80, 443]",
+                "expected_output": "[]",
+                "is_hidden": false,
+                "points": 25,
+                "sort_order": 1
+              },
+              {
+                "input": "\"google.com\", [80, 443]",
+                "expected_output": "[80, 443]",
+                "is_hidden": true,
+                "points": 25,
+                "sort_order": 2
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
