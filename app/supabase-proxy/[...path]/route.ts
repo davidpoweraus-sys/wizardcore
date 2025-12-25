@@ -71,9 +71,9 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     const url = new URL(request.url)
     let targetPath = path.join('/')
     
-    // DO NOT strip /auth/v1 prefix - GoTrue serves endpoints at /auth/v1/*
-    // IMPORTANT: Keep the /auth/v1 prefix for GoTrue compatibility
-    // targetPath = targetPath.replace(/^auth\/v1\//, '')
+    // STRIP /auth/v1 prefix - GoTrue serves endpoints at /* (root level)
+    // IMPORTANT: Based on server diagnostics, GoTrue expects /signup NOT /auth/v1/signup
+    targetPath = targetPath.replace(/^auth\/v1\//, '')
     
     // Ensure we don't get double slashes in URL
     const baseUrl = GOTRUE_URL.endsWith('/') ? GOTRUE_URL.slice(0, -1) : GOTRUE_URL
@@ -131,10 +131,32 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     console.log('✅ First 200 chars of response:', data.substring(0, 200))
     console.log('✅ Last 200 chars of response:', data.substring(Math.max(0, data.length - 200)))
     
-    // Debug: Show character codes of first 10 chars
-    console.log('🔍 First 10 character codes:')
-    for (let i = 0; i < Math.min(10, data.length); i++) {
-      console.log(`  [${i}] '${data[i] === '\n' ? '\\n' : data[i] === '\r' ? '\\r' : data[i] === '\t' ? '\\t' : data[i]}' = ${data.charCodeAt(i)}`)
+    // Debug: Show character codes of first 50 chars to see what's causing JSON parse error
+    console.log('🔍 First 50 character codes (to debug JSON parse error at column 5):')
+    for (let i = 0; i < Math.min(50, data.length); i++) {
+      const char = data[i]
+      let displayChar = char
+      if (char === '\n') displayChar = '\\n'
+      else if (char === '\r') displayChar = '\\r'
+      else if (char === '\t') displayChar = '\\t'
+      else if (char === '"') displayChar = '\\"'
+      else if (char === '\\') displayChar = '\\\\'
+      else if (char.charCodeAt(0) < 32) displayChar = `\\x${char.charCodeAt(0).toString(16).padStart(2, '0')}`
+      
+      console.log(`  [${i}] '${displayChar}' = ${char.charCodeAt(0)} ${i === 4 ? '← COLUMN 5 (error location)' : ''}`)
+    }
+    
+    // Also show the raw response as hex to see any hidden characters
+    console.log('🔍 First 100 bytes as hex:')
+    const hexArray = []
+    for (let i = 0; i < Math.min(100, data.length); i++) {
+      hexArray.push(data.charCodeAt(i).toString(16).padStart(2, '0'))
+      if ((i + 1) % 16 === 0) {
+        console.log(`  ${hexArray.slice(i - 15, i + 1).join(' ')}`)
+      }
+    }
+    if (hexArray.length % 16 !== 0) {
+      console.log(`  ${hexArray.slice(Math.floor(hexArray.length / 16) * 16).join(' ')}`)
     }
     
     // Remove UTF-8 BOM if present (common issue with some servers)
@@ -149,47 +171,54 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     console.log('✅ Trimmed response body length:', trimmedData.length)
     
     // Check if response is valid JSON
+    let responseData = trimmedData
+    let shouldReturnJson = false
+    
     try {
-      JSON.parse(trimmedData)
+      JSON.parse(responseData)
       console.log('✅ Response is valid JSON')
     } catch (e) {
       console.log('⚠️  Response is NOT valid JSON:', e instanceof Error ? e.message : String(e))
-      // If it's not JSON but content-type says it is, we might have an issue
-      const contentType = response.headers.get('Content-Type') || ''
-      if (contentType.includes('application/json')) {
-        console.log('⚠️  Content-Type claims JSON but response is not valid JSON')
-        // If we expected JSON but didn't get it, return a proper JSON error
-        // This helps the Supabase client handle errors properly
-        if (response.status >= 400) {
-          console.log('🔄 Converting non-JSON error response to JSON format')
-          const errorResponse = {
-            error: 'Proxy Error',
-            message: 'Invalid JSON response from upstream',
-            details: {
-              status: response.status,
-              statusText: response.statusText,
-              contentType: contentType,
-              responsePreview: trimmedData.length > 200 ? trimmedData.substring(0, 200) + '...' : trimmedData
-            }
-          }
-          return new NextResponse(JSON.stringify(errorResponse), {
-            status: response.status,
-            headers: {
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': 'https://offensivewizard.com',
-              'Access-Control-Allow-Credentials': 'true',
-            },
-          })
+      // If it's not JSON but we got an error status, convert it to JSON
+      // This is CRITICAL because Supabase client expects JSON responses
+      if (response.status >= 400) {
+        console.log('🔄 Converting non-JSON error response to JSON format for Supabase client')
+        shouldReturnJson = true
+        
+        // Try to extract any meaningful error message from the response
+        let errorMessage = 'Authentication service error'
+        if (responseData.includes('Not Found') || responseData.includes('404')) {
+          errorMessage = 'Authentication endpoint not found. Check if Supabase Auth is running.'
+        } else if (responseData.length > 0) {
+          // Take first 100 chars as error message
+          errorMessage = responseData.substring(0, Math.min(100, responseData.length)).replace(/\s+/g, ' ')
         }
+        
+        responseData = JSON.stringify({
+          error: 'auth_error',
+          message: errorMessage,
+          status: response.status,
+          details: {
+            original_status: response.status,
+            original_status_text: response.statusText,
+            content_type: response.headers.get('Content-Type') || 'unknown',
+            response_preview: responseData.length > 200 ? responseData.substring(0, 200) + '...' : responseData
+          }
+        })
       }
     }
 
     // Return response with CORS headers
-    return new NextResponse(trimmedData, {
+    // If we converted to JSON, use application/json content type
+    const contentType = shouldReturnJson 
+      ? 'application/json' 
+      : response.headers.get('Content-Type') || 'application/json'
+    
+    return new NextResponse(responseData, {
       status: response.status,
       statusText: response.statusText,
       headers: {
-        'Content-Type': response.headers.get('Content-Type') || 'application/json',
+        'Content-Type': contentType,
         'Access-Control-Allow-Origin': 'https://offensivewizard.com',
         'Access-Control-Allow-Credentials': 'true',
         'Access-Control-Expose-Headers': 'X-Total-Count',
