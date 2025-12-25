@@ -1,0 +1,22 @@
+# Docker ignore file
+.next
+node_modules
+.git
+*.log
+.env.local
+.env.development
+.env.test
+.env.production
+.DS_Store
+*.md
+*.txt
+*.sql
+*.sh
+scripts/
+Documentation/
+wizardcore-backend/
+init-scripts/
+nginx-config/
+public/templates/
+test.env
+*.bak

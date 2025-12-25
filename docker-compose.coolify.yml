@@ -4,6 +4,7 @@
 services:
   # Frontend - Pull from Docker Hub
   frontend:
+    container_name: frontend
     image: limpet/wizardcore-frontend:latest
     ports:
       - "3000:3000"
@@ -19,11 +20,13 @@ services:
       supabase-auth:
         condition: service_started
     networks:
-      - wizardcore-network
+      wizardcore-network:
+        aliases: [frontend, web]
     restart: unless-stopped
 
   # Backend - Pull from Docker Hub
   backend:
+    container_name: backend
     image: limpet/wizardcore-backend:latest
     environment:
       - DATABASE_URL=postgresql://wizardcore:wizardcore_password@postgres:5432/wizardcore?sslmode=disable
@@ -46,11 +49,13 @@ services:
       supabase-auth:
         condition: service_started
     networks:
-      - wizardcore-network
+      wizardcore-network:
+        aliases: [backend, api]
     restart: unless-stopped
 
   # Supabase Auth (GoTrue) - Pull from Docker Hub
   supabase-auth:
+    container_name: supabase-auth
     image: supabase/gotrue:v2.184.0
     environment:
       GOTRUE_API_HOST: 0.0.0.0
@@ -83,11 +88,13 @@ services:
       retries: 5
       start_period: 30s
     networks:
-      - wizardcore-network
+      wizardcore-network:
+        aliases: [supabase-auth, auth]
     restart: unless-stopped
 
   # Supabase PostgreSQL
   supabase-postgres:
+    container_name: supabase-postgres
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: supabase_auth_admin
@@ -97,7 +104,8 @@ services:
       - supabase_postgres_data:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
     networks:
-      - wizardcore-network
+      wizardcore-network:
+        aliases: [supabase-postgres, auth-db]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U supabase_auth_admin -d supabase_auth"]
       interval: 10s
@@ -108,6 +116,7 @@ services:
 
   # Supabase Init
   supabase-init:
+    container_name: supabase-init
     image: postgres:15-alpine
     depends_on:
       supabase-postgres:
@@ -131,11 +140,13 @@ services:
       tail -f /dev/null
       "
     networks:
-      - wizardcore-network
+      wizardcore-network:
+        aliases: [supabase-init]
     restart: "no"
 
   # WizardCore PostgreSQL
   postgres:
+    container_name: postgres
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: wizardcore
@@ -144,7 +155,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - wizardcore-network
+      wizardcore-network:
+        aliases: [postgres, database]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U wizardcore -d wizardcore"]
       interval: 10s
@@ -155,26 +167,31 @@ services:
 
   # Redis
   redis:
+    container_name: redis
     image: redis:7-alpine
     command: redis-server --requirepass xZDxSwVXHxVf6FYksaeEoA==
     volumes:
       - redis_data:/data
     networks:
-      - wizardcore-network
+      wizardcore-network:
+        aliases: [redis, cache]
     restart: unless-stopped
 
   # Judge0 Redis
   judge0-redis:
+    container_name: judge0-redis
     image: redis:7.2-alpine
     command: redis-server --appendonly yes
     volumes:
       - judge0_redis_data:/data
     networks:
-      - wizardcore-network
+      wizardcore-network:
+        aliases: [judge0-redis, judge0-cache]
     restart: unless-stopped
 
   # Judge0 PostgreSQL
   judge0-postgres:
+    container_name: judge0-postgres
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: judge0
@@ -183,7 +200,8 @@ services:
     volumes:
       - judge0_postgres_data:/var/lib/postgresql/data
     networks:
-      - wizardcore-network
+      wizardcore-network:
+        aliases: [judge0-postgres, judge0-db]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U judge0"]
       interval: 10s
@@ -194,6 +212,7 @@ services:
 
   # Judge0 API
   judge0:
+    container_name: judge0
     image: judge0/judge0:latest
     environment:
       - REDIS_HOST=judge0-redis
@@ -209,11 +228,13 @@ services:
       judge0-redis:
         condition: service_started
     networks:
-      - wizardcore-network
+      wizardcore-network:
+        aliases: [judge0, code-execution]
     restart: unless-stopped
 
   # Judge0 Worker
   judge0-worker:
+    container_name: judge0-worker
     image: judge0/judge0:latest
     command: ["./scripts/workers"]
     environment:
@@ -230,7 +251,8 @@ services:
       judge0-redis:
         condition: service_started
     networks:
-      - wizardcore-network
+      wizardcore-network:
+        aliases: [judge0-worker]
     restart: unless-stopped
 
 volumes:
