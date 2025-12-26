@@ -11,11 +11,32 @@ END
 $$;
 
 -- Create enum types required by Supabase Auth migrations
--- factor_type (includes all possible values upfront)
+-- These types must be created BEFORE GoTrue runs its migrations
+-- We create them in the auth schema to avoid conflicts
+
+-- factor_type (for MFA)
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'factor_type' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN
         CREATE TYPE auth.factor_type AS ENUM ('totp', 'webauthn', 'phone');
+    END IF;
+END
+$$;
+
+-- factor_status (for MFA)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'factor_status' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN
+        CREATE TYPE auth.factor_status AS ENUM ('unverified', 'verified');
+    END IF;
+END
+$$;
+
+-- aal_level (Authentication Assurance Level)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'aal_level' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN
+        CREATE TYPE auth.aal_level AS ENUM ('aal1', 'aal2', 'aal3');
     END IF;
 END
 $$;

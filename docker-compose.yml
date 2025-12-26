@@ -51,21 +51,22 @@ services:
     volumes:
       - ./init-scripts:/docker-entrypoint-initdb.d
       - init_status:/status
-    command: >
-      sh -c "
-      until pg_isready -h supabase-postgres -p 5432 -U ${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d ${SUPABASE_POSTGRES_DB:-supabase_auth}; do
-        echo 'Waiting for database...';
-        sleep 2;
-      done;
-      echo 'Database ready. Running initialization scripts...';
-      psql -h supabase-postgres -p 5432 -U ${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d ${SUPABASE_POSTGRES_DB:-supabase_auth} -f /docker-entrypoint-initdb.d/00-create-user.sql || exit 1;
-      echo 'User creation script completed.';
-      psql -h supabase-postgres -p 5432 -U ${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d ${SUPABASE_POSTGRES_DB:-supabase_auth} -f /docker-entrypoint-initdb.d/01-create-auth-schema.sql || exit 1;
-      echo 'Auth schema initialized.';
-      echo 'READY' > /status/init.status;
-      echo 'Initialization complete. Keeping container alive for dependency tracking...';
-      tail -f /dev/null
-      "
+    command:
+      - sh
+      - -c
+      - |
+        until pg_isready -h supabase-postgres -p 5432 -U $${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d $${SUPABASE_POSTGRES_DB:-supabase_auth}; do
+          echo 'Waiting for database...'
+          sleep 2
+        done
+        echo 'Database ready. Running initialization scripts...'
+        psql -h supabase-postgres -p 5432 -U $${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d $${SUPABASE_POSTGRES_DB:-supabase_auth} -f /docker-entrypoint-initdb.d/00-create-user.sql || exit 1
+        echo 'User creation script completed.'
+        psql -h supabase-postgres -p 5432 -U $${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d $${SUPABASE_POSTGRES_DB:-supabase_auth} -f /docker-entrypoint-initdb.d/01-create-auth-schema.sql || exit 1
+        echo 'Auth schema initialized.'
+        echo 'READY' > /status/init.status
+        echo 'Initialization complete. Keeping container alive for dependency tracking...'
+        tail -f /dev/null
     networks:
       - wizardcore-network
     healthcheck:
@@ -189,25 +190,26 @@ services:
       PGDATABASE: ${POSTGRES_DB:-wizardcore}
     volumes:
       - ./postgres-init-scripts:/scripts
-    command: >
-      sh -c "
-      echo 'Waiting for database to be ready...';
-      until pg_isready -h postgres -p 5432 -U ${POSTGRES_USER:-wizardcore} -d ${POSTGRES_DB:-wizardcore}; do
-        echo 'Database not ready, waiting...';
-        sleep 2;
-      done;
-      echo 'Database ready. Waiting 10 seconds for migrations to complete...';
-      sleep 10;
-      echo 'Running post-migration initialization scripts...';
-      for script in /scripts/*.sql; do
-        if [ -f \"\$script\" ]; then
-          echo \"Executing: \$script\";
-          psql -h postgres -p 5432 -U ${POSTGRES_USER:-wizardcore} -d ${POSTGRES_DB:-wizardcore} -f \"\$script\" || echo \"Script \$script failed, continuing...\";
-        fi
-      done;
-      echo 'Post-migration initialization complete.';
-      tail -f /dev/null
-      "
+    command:
+      - sh
+      - -c
+      - |
+        echo 'Waiting for database to be ready...'
+        until pg_isready -h postgres -p 5432 -U $${POSTGRES_USER:-wizardcore} -d $${POSTGRES_DB:-wizardcore}; do
+          echo 'Database not ready, waiting...'
+          sleep 2
+        done
+        echo 'Database ready. Waiting 10 seconds for migrations to complete...'
+        sleep 10
+        echo 'Running post-migration initialization scripts...'
+        for script in /scripts/*.sql; do
+          if [ -f "$$script" ]; then
+            echo "Executing: $$script"
+            psql -h postgres -p 5432 -U $${POSTGRES_USER:-wizardcore} -d $${POSTGRES_DB:-wizardcore} -f "$$script" || echo "Script $$script failed, continuing..."
+          fi
+        done
+        echo 'Post-migration initialization complete.'
+        tail -f /dev/null
     networks:
       - wizardcore-network
     deploy:
