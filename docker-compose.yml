@@ -1,71 +1,350 @@
+# ==============================================
+# WIZARDCORE DOCKER COMPOSE - PRODUCTION
+# ==============================================
+# Optimized for Dokploy with Docker Swarm support
+# Swarm features: health checks, rolling updates, placement constraints
+
 version: '3.8'
 
 services:
-  judge0-redis:
-    image: redis:7.2-alpine
-    container_name: judge0-redis
-    restart: unless-stopped
-    networks:
-      - judge0-network
+  # ===================
+  # SUPABASE AUTH STACK
+  # ===================
+  
+  supabase-postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${SUPABASE_POSTGRES_USER:-supabase_auth_admin}
+      POSTGRES_PASSWORD: ${SUPABASE_POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${SUPABASE_POSTGRES_DB:-supabase_auth}
     volumes:
-      - judge0-redis-data:/data
+      - supabase_postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - wizardcore-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d ${SUPABASE_POSTGRES_DB:-supabase_auth}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
 
+  supabase-init:
+    image: postgres:15-alpine
+    depends_on:
+      supabase-postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: supabase-postgres
+      PGPORT: 5432
+      PGUSER: ${SUPABASE_POSTGRES_USER:-supabase_auth_admin}
+      PGPASSWORD: ${SUPABASE_POSTGRES_PASSWORD:-password}
+      PGDATABASE: ${SUPABASE_POSTGRES_DB:-supabase_auth}
+    volumes:
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    command: >
+      sh -c "
+      until pg_isready -h supabase-postgres -p 5432 -U ${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d ${SUPABASE_POSTGRES_DB:-supabase_auth}; do
+        echo 'Waiting for database...';
+        sleep 2;
+      done;
+      psql -h supabase-postgres -p 5432 -U ${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d ${SUPABASE_POSTGRES_DB:-supabase_auth} -f /docker-entrypoint-initdb.d/01-create-auth-schema.sql || true;
+      echo 'Auth schema initialized.';
+      tail -f /dev/null
+      "
+    networks:
+      - wizardcore-network
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  supabase-auth:
+    image: supabase/gotrue:v2.184.0
+    depends_on:
+      supabase-postgres:
+        condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: ${GOTRUE_API_HOST:-0.0.0.0}
+      GOTRUE_API_PORT: ${GOTRUE_API_PORT:-9999}
+      GOTRUE_DB_DRIVER: ${GOTRUE_DB_DRIVER:-postgres}
+      GOTRUE_DB_DATABASE_URL: ${GOTRUE_DB_DATABASE_URL:-postgresql://supabase_auth_admin:password@supabase-postgres:5432/supabase_auth?sslmode=disable}
+      GOTRUE_SITE_URL: ${GOTRUE_SITE_URL:-https://offensivewizard.com}
+      GOTRUE_JWT_SECRET: ${GOTRUE_JWT_SECRET}
+      GOTRUE_JWT_EXP: ${GOTRUE_JWT_EXP:-3600}
+      GOTRUE_JWT_AUD: ${GOTRUE_JWT_AUD:-authenticated}
+      GOTRUE_JWT_ISSUER: ${GOTRUE_JWT_ISSUER:-supabase}
+      GOTRUE_DISABLE_SIGNUP: ${GOTRUE_DISABLE_SIGNUP:-false}
+      GOTRUE_MAILER_AUTOCONFIRM: ${GOTRUE_MAILER_AUTOCONFIRM:-true}
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL:-https://auth.offensivewizard.com}
+      GOTRUE_CORS_ALLOWED_ORIGINS: ${GOTRUE_CORS_ALLOWED_ORIGINS:-https://offensivewizard.com}
+      GOTRUE_CORS_ALLOWED_HEADERS: ${GOTRUE_CORS_ALLOWED_HEADERS:-Authorization,Content-Type,X-Client-Info,X-Requested-With,apikey,x-client-info,x-supabase-api-version,Accept,Accept-Language,Content-Language}
+      GOTRUE_CORS_ALLOWED_METHODS: ${GOTRUE_CORS_ALLOWED_METHODS:-GET,POST,PUT,PATCH,DELETE,OPTIONS}
+      GOTRUE_CORS_EXPOSED_HEADERS: ${GOTRUE_CORS_EXPOSED_HEADERS:-X-Total-Count}
+      GOTRUE_CORS_ALLOW_CREDENTIALS: ${GOTRUE_CORS_ALLOW_CREDENTIALS:-true}
+      GOTRUE_DB_AUTOMIGRATE: ${GOTRUE_DB_AUTOMIGRATE:-true}
+    ports:
+      - "9999:9999"
+    networks:
+      wizardcore-network:
+        aliases:
+          - supabase-auth
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9999/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  # ===================
+  # WIZARDCORE STACK
+  # ===================
+  
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-wizardcore}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-wizardcore}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - wizardcore-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wizardcore} -d ${POSTGRES_DB:-wizardcore}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - wizardcore-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+
+  backend:
+    image: limpet/wizardcore-backend:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      supabase-auth:
+        condition: service_healthy
+    environment:
+      PORT: ${PORT:-8080}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JUDGE0_API_URL: ${JUDGE0_API_URL:-http://judge0:2358}
+      JUDGE0_API_KEY: ${JUDGE0_API_KEY}
+      SUPABASE_URL: ${SUPABASE_URL:-http://supabase-auth:9999}
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL:-https://offensivewizard.com}
+    networks:
+      - wizardcore-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  frontend:
+    image: limpet/wizardcore-frontend:latest
+    depends_on:
+      backend:
+        condition: service_healthy
+      supabase-auth:
+        condition: service_healthy
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-https://auth.offensivewizard.com}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-https://offensivewizard.com/api}
+      NEXT_PUBLIC_JUDGE0_API_URL: ${NEXT_PUBLIC_JUDGE0_API_URL:-https://judge0.offensivewizard.com}
+    ports:
+      - "3000:3000"
+    networks:
+      - wizardcore-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  # ===================
+  # JUDGE0 STACK
+  # ===================
+  
   judge0-postgres:
     image: postgres:16-alpine
-    container_name: judge0-postgres
-    restart: unless-stopped
-    networks:
-      - judge0-network
     environment:
-      POSTGRES_USER: judge0
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: judge0
+      POSTGRES_USER: ${JUDGE0_POSTGRES_USER:-judge0}
+      POSTGRES_PASSWORD: ${JUDGE0_POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${JUDGE0_POSTGRES_DB:-judge0}
     volumes:
-      - judge0-postgres-data:/var/lib/postgresql/data
+      - judge0_postgres_data:/var/lib/postgresql/data
+    networks:
+      - wizardcore-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${JUDGE0_POSTGRES_USER:-judge0} -d ${JUDGE0_POSTGRES_DB:-judge0}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+
+  judge0-redis:
+    image: redis:7.2-alpine
+    volumes:
+      - judge0_redis_data:/data
+    networks:
+      - wizardcore-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
   judge0:
     image: judge0/judge0:latest
-    container_name: judge0
-    restart: unless-stopped
-    networks:
-      - judge0-network
-    ports:
-      - "2358:2358"
-      - "5000:5000"
+    depends_on:
+      judge0-postgres:
+        condition: service_healthy
+      judge0-redis:
+        condition: service_healthy
     environment:
       REDIS_HOST: judge0-redis
       POSTGRES_HOST: judge0-postgres
-      POSTGRES_USER: judge0
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: judge0
-      JUDGE0_API_URL: http://localhost:2358
-      JUDGE0_API_KEY: "your-secret-key"
-    depends_on:
-      - judge0-redis
-      - judge0-postgres
+      POSTGRES_USER: ${JUDGE0_POSTGRES_USER:-judge0}
+      POSTGRES_PASSWORD: ${JUDGE0_POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${JUDGE0_POSTGRES_DB:-judge0}
+      DATABASE_URL: postgresql://${JUDGE0_POSTGRES_USER:-judge0}:${JUDGE0_POSTGRES_PASSWORD:-password}@judge0-postgres:5432/${JUDGE0_POSTGRES_DB:-judge0}
+      JUDGE0_API_URL: http://judge0:2358
+      JUDGE0_API_KEY: ${JUDGE0_API_KEY}
+    ports:
+      - "2358:2358"
+    networks:
+      - wizardcore-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
 
   judge0-worker:
     image: judge0/judge0:latest
-    container_name: judge0-worker
-    restart: unless-stopped
-    networks:
-      - judge0-network
+    depends_on:
+      judge0-postgres:
+        condition: service_healthy
+      judge0-redis:
+        condition: service_healthy
     environment:
       REDIS_HOST: judge0-redis
       POSTGRES_HOST: judge0-postgres
-      POSTGRES_USER: judge0
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: judge0
+      POSTGRES_USER: ${JUDGE0_POSTGRES_USER:-judge0}
+      POSTGRES_PASSWORD: ${JUDGE0_POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${JUDGE0_POSTGRES_DB:-judge0}
+      DATABASE_URL: postgresql://${JUDGE0_POSTGRES_USER:-judge0}:${JUDGE0_POSTGRES_PASSWORD:-password}@judge0-postgres:5432/${JUDGE0_POSTGRES_DB:-judge0}
       JUDGE0_API_URL: http://judge0:2358
-    command: ["./scripts/start-worker.sh"]
-    depends_on:
-      - judge0-redis
-      - judge0-postgres
+    command: ["./scripts/workers"]
+    networks:
+      - wizardcore-network
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+# ===================
+# NETWORKS
+# ===================
 
 networks:
-  judge0-network:
-    driver: bridge
+  wizardcore-network:
+    driver: overlay
+    attachable: true
+
+# ===================
+# VOLUMES
+# ===================
 
 volumes:
-  judge0-redis-data:
-  judge0-postgres-data:
+  supabase_postgres_data:
+    driver: local
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  judge0_postgres_data:
+    driver: local
+  judge0_redis_data:
+    driver: local
