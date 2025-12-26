@@ -118,16 +118,7 @@ services:
       timeout: 10s
       retries: 10
       start_period: 60s
-    deploy:
-      replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 10s
-        order: start-first
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 5
+    restart: unless-stopped
 
   # ===================
   # WIZARDCORE STACK
@@ -243,15 +234,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 40s
-    deploy:
-      replicas: 2
-      update_config:
-        parallelism: 1
-        delay: 10s
-        order: start-first
-      restart_policy:
-        condition: on-failure
-        delay: 5s
+    restart: unless-stopped
 
   frontend:
     image: limpet/wizardcore-frontend:latest
@@ -275,15 +258,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 40s
-    deploy:
-      replicas: 2
-      update_config:
-        parallelism: 1
-        delay: 10s
-        order: start-first
-      restart_policy:
-        condition: on-failure
-        delay: 5s
+    restart: unless-stopped
 
   # ===================
   # JUDGE0 STACK
