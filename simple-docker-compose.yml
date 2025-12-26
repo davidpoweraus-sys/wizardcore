@@ -1,0 +1,148 @@
+version: '3.8'
+
+services:
+  # Frontend - Next.js app
+  frontend:
+    image: limpet/wizardcore-frontend:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_SUPABASE_URL=http://localhost:9999
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+      - NEXT_PUBLIC_JUDGE0_API_URL=http://localhost:2358
+    depends_on:
+      - backend
+      - auth
+    restart: unless-stopped
+
+  # Backend API - Go service
+  backend:
+    image: limpet/wizardcore-backend:latest
+    ports:
+      - "8080:8080"
+    environment:
+      # Database
+      - DATABASE_URL=postgresql://wizardcore:wizardcore@postgres:5432/wizardcore?sslmode=disable
+      # Auth
+      - SUPABASE_URL=http://auth:9999
+      - SUPABASE_JWT_SECRET=aNBMlTAljHvKyR2dPu6R6nyggeW2398Na3R4XL1+oyebUDiuzSO61nZzoVmRi0h4
+      # Redis
+      - REDIS_URL=redis:6379
+      - REDIS_PASSWORD=wizardcore
+      # Judge0
+      - JUDGE0_API_URL=http://judge0:2358
+      # CORS
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000
+      - PORT=8080
+    depends_on:
+      - postgres
+      - redis
+      - judge0
+      - auth
+    restart: unless-stopped
+
+  # Supabase Auth
+  auth:
+    image: supabase/gotrue:v2.184.0
+    ports:
+      - "9999:9999"
+    environment:
+      - GOTRUE_API_HOST=0.0.0.0
+      - GOTRUE_API_PORT=9999
+      - GOTRUE_DB_DRIVER=postgres
+      - GOTRUE_DB_DATABASE_URL=postgresql://supabase_auth_admin:password@auth-db:5432/supabase_auth?sslmode=disable
+      - GOTRUE_SITE_URL=http://localhost:3000
+      - API_EXTERNAL_URL=http://localhost:9999
+      - GOTRUE_CORS_ALLOWED_ORIGINS=http://localhost:3000
+      - GOTRUE_DB_AUTOMIGRATE=true
+    depends_on:
+      - auth-db
+    restart: unless-stopped
+
+  # Judge0
+  judge0:
+    image: judge0/judge0:latest
+    ports:
+      - "2358:2358"
+    environment:
+      - REDIS_HOST=judge0-redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=judge0-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=judge0
+      - POSTGRES_PASSWORD=judge0
+      - POSTGRES_DB=judge0
+    depends_on:
+      - judge0-db
+      - judge0-redis
+    restart: unless-stopped
+
+  # Judge0 Worker
+  judge0-worker:
+    image: judge0/judge0:latest
+    command: ["./scripts/workers"]
+    environment:
+      - REDIS_HOST=judge0-redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=judge0-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=judge0
+      - POSTGRES_PASSWORD=judge0
+      - POSTGRES_DB=judge0
+    depends_on:
+      - judge0-db
+      - judge0-redis
+    restart: unless-stopped
+
+  # Databases (internal)
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: wizardcore
+      POSTGRES_PASSWORD: wizardcore
+      POSTGRES_DB: wizardcore
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  auth-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: supabase_auth_admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: supabase_auth
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  judge0-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: judge0
+      POSTGRES_DB: judge0
+    volumes:
+      - judge0_db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Redis instances
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass wizardcore --bind 0.0.0.0
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  judge0-redis:
+    image: redis:7.2-alpine
+    command: redis-server --appendonly yes --bind 0.0.0.0
+    volumes:
+      - judge0_redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  auth_db_data:
+  judge0_db_data:
+  redis_data:
+  judge0_redis_data:

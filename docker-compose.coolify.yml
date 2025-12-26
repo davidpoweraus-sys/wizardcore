@@ -29,17 +29,17 @@ services:
     container_name: backend
     image: limpet/wizardcore-backend:latest
     environment:
-      # Database connection - using explicit variables for Coolify compatibility
-      - DATABASE_URL=postgresql://wizardcore:wizardcore_password@postgres:5432/wizardcore?sslmode=disable
+      # Database connection - using environment variables
+      - DATABASE_URL=postgresql://wizardcore:${DATABASE_PASSWORD}@postgres:5432/wizardcore?sslmode=disable
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_USER=wizardcore
-      - DATABASE_PASSWORD=wizardcore_password
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
       - DATABASE_NAME=wizardcore
       - SUPABASE_URL=http://supabase-auth:9999
-      - SUPABASE_JWT_SECRET=aNBMlTAljHvKyR2dPu6R6nyggeW2398Na3R4XL1+oyebUDiuzSO61nZzoVmRi0h4
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
       - REDIS_URL=redis:6379
-      - REDIS_PASSWORD=xZDxSwVXHxVf6FYksaeEoA==
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - JUDGE0_API_URL=http://judge0:2358
       - JUDGE0_API_KEY=
       - CORS_ALLOWED_ORIGINS=https://offensivewizard.com
@@ -67,9 +67,9 @@ services:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
       GOTRUE_DB_DRIVER: postgres
-      GOTRUE_DB_DATABASE_URL: postgresql://supabase_auth_admin:password@supabase-postgres:5432/supabase_auth?sslmode=disable
+      GOTRUE_DB_DATABASE_URL: postgresql://supabase_auth_admin:${SUPABASE_DB_PASSWORD}@supabase-postgres:5432/supabase_auth?sslmode=disable
       GOTRUE_SITE_URL: https://offensivewizard.com
-      GOTRUE_JWT_SECRET: aNBMlTAljHvKyR2dPu6R6nyggeW2398Na3R4XL1+oyebUDiuzSO61nZzoVmRi0h4
+      GOTRUE_JWT_SECRET: ${GOTRUE_JWT_SECRET}
       GOTRUE_JWT_EXP: 3600
       GOTRUE_JWT_AUD: authenticated
       GOTRUE_JWT_ISSUER: supabase
@@ -104,7 +104,7 @@ services:
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: supabase_auth_admin
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${SUPABASE_DB_PASSWORD}
       POSTGRES_DB: supabase_auth
     volumes:
       - supabase_postgres_data:/var/lib/postgresql/data
@@ -156,7 +156,7 @@ services:
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: wizardcore
-      POSTGRES_PASSWORD: wizardcore_password
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: wizardcore
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -175,7 +175,7 @@ services:
   redis:
     container_name: redis
     image: redis:7-alpine
-    command: redis-server --requirepass xZDxSwVXHxVf6FYksaeEoA==
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
     networks:
@@ -201,7 +201,7 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: judge0
-      POSTGRES_PASSWORD: judge0
+      POSTGRES_PASSWORD: ${JUDGE0_POSTGRES_PASSWORD}
       POSTGRES_DB: judge0
     volumes:
       - judge0_postgres_data:/var/lib/postgresql/data
@@ -226,7 +226,7 @@ services:
       - POSTGRES_HOST=judge0-postgres
       - POSTGRES_PORT=5432
       - POSTGRES_USER=judge0
-      - POSTGRES_PASSWORD=judge0
+      - POSTGRES_PASSWORD=${JUDGE0_POSTGRES_PASSWORD}
       - POSTGRES_DB=judge0
     depends_on:
       judge0-postgres:
@@ -249,7 +249,7 @@ services:
       - POSTGRES_HOST=judge0-postgres
       - POSTGRES_PORT=5432
       - POSTGRES_USER=judge0
-      - POSTGRES_PASSWORD=judge0
+      - POSTGRES_PASSWORD=${JUDGE0_POSTGRES_PASSWORD}
       - POSTGRES_DB=judge0
     depends_on:
       judge0-postgres:

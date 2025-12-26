@@ -1,0 +1,8 @@
+# Simple frontend-only deployment for CapRover
+FROM limpet/wizardcore-frontend:latest
+
+# Expose port
+EXPOSE 3000
+
+# Default command (already set in base image)
+CMD ["node", "server.js"]

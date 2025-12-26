@@ -1,0 +1,22 @@
+# Frontend with nginx proxy for CapRover
+# This serves the frontend and proxies API requests to external services
+
+FROM limpet/wizardcore-frontend:latest as frontend
+
+# Copy nginx configuration
+COPY nginx-proxy.conf /etc/nginx/conf.d/default.conf
+
+# Install nginx
+USER root
+RUN apk add --no-cache nginx
+USER nextjs
+
+# Create startup script
+COPY start-nginx.sh /start-nginx.sh
+RUN chmod +x /start-nginx.sh
+
+# Expose port
+EXPOSE 3000 80
+
+# Start both Next.js and nginx
+CMD ["sh", "-c", "node server.js & nginx -g 'daemon off;'"]

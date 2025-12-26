@@ -1,0 +1,87 @@
+# ============================================
+# WIZARDCORE PRODUCTION ENVIRONMENT
+# WITH SECURE PASSWORDS
+# ============================================
+
+# DOMAIN CONFIGURATION
+DOMAIN=offensivewizard.com
+FRONTEND_DOMAIN=app.offensivewizard.com
+BACKEND_DOMAIN=api.offensivewizard.com
+AUTH_DOMAIN=auth.offensivewizard.com
+JUDGE0_DOMAIN=judge0.offensivewizard.com
+
+# FRONTEND CONFIGURATION
+NEXT_PUBLIC_SUPABASE_URL=https://auth.offensivewizard.com
+NEXT_PUBLIC_BACKEND_URL=https://api.offensivewizard.com
+NEXT_PUBLIC_JUDGE0_API_URL=https://judge0.offensivewizard.com
+NEXT_PUBLIC_SITE_URL=https://app.offensivewizard.com
+NEXTAUTH_SECRET=your-secure-nextauth-secret-here-change-this
+NEXTAUTH_URL=https://app.offensivewizard.com
+
+# SECRETS - CHANGE THESE WITH SECURE PASSWORDS
+DATABASE_PASSWORD=change-this-with-secure-password-32-chars
+SUPABASE_JWT_SECRET=change-this-with-secure-jwt-secret-64-hex-chars
+REDIS_PASSWORD=change-this-with-secure-password-32-chars
+
+# BACKEND CONFIGURATION
+CORS_ALLOWED_ORIGINS=https://app.offensivewizard.com
+PORT=8080
+ENVIRONMENT=production
+LOG_LEVEL=info
+
+# SUPABASE AUTH CONFIGURATION
+GOTRUE_SITE_URL=https://app.offensivewizard.com
+API_EXTERNAL_URL=https://auth.offensivewizard.com
+GOTRUE_CORS_ALLOWED_ORIGINS=https://app.offensivewizard.com
+GOTRUE_DB_AUTOMIGRATE=true
+GOTRUE_JWT_SECRET=must-match-SUPABASE_JWT_SECRET-above
+GOTRUE_JWT_EXP=3600
+GOTRUE_JWT_AUD=authenticated
+GOTRUE_JWT_ISSUER=supabase
+
+# DATABASE PASSWORDS - CHANGE THESE
+POSTGRES_PASSWORD=change-this-with-secure-password-32-chars
+POSTGRES_USER=wizardcore
+POSTGRES_DB=wizardcore
+
+SUPABASE_DB_PASSWORD=change-this-with-secure-password-32-chars
+SUPABASE_DB_USER=supabase_auth_admin
+SUPABASE_DB_NAME=supabase_auth
+
+JUDGE0_POSTGRES_PASSWORD=change-this-with-secure-password-32-chars
+JUDGE0_POSTGRES_USER=judge0
+JUDGE0_POSTGRES_DB=judge0
+
+# REDIS PASSWORDS - CHANGE THESE
+JUDGE0_REDIS_PASSWORD=change-this-with-secure-password-32-chars
+
+# SSL CERTIFICATE EMAIL
+TRAEFIK_ACME_EMAIL=admin@offensivewizard.com
+
+# ============================================
+# HOW TO GENERATE SECURE PASSWORDS:
+# ============================================
+# Run these commands to generate secure passwords:
+
+# Database password (32 chars):
+# openssl rand -base64 32 | tr -d '/+=' | cut -c1-32
+
+# JWT secret (64 hex chars):
+# openssl rand -hex 64
+
+# Redis password (32 chars):
+# openssl rand -base64 32 | tr -d '/+=' | cut -c1-32
+
+# NextAuth secret (64 chars):
+# openssl rand -base64 64 | tr -d '/+=' | cut -c1-64
+
+# ============================================
+# EXAMPLE GENERATED PASSWORDS (DO NOT USE THESE):
+# ============================================
+# DATABASE_PASSWORD=AbC1dEf2GhI3JkL4MnOp5QrStUvWxYz6
+# SUPABASE_JWT_SECRET=abc123def456ghi789jkl012mno345pqr678stu901vwx234yz567abc890def123ghi456
+# REDIS_PASSWORD=XyZ9aBc8DeF7GhI6JkL5MnOp4QrSt3UvW2
+# SUPABASE_DB_PASSWORD=1aB2cD3eF4gH5iJ6kL7mN8oP9qR0sT1
+# JUDGE0_POSTGRES_PASSWORD=UvW2xYz3AbC4dEf5GhI6JkL7MnOp8
+# JUDGE0_REDIS_PASSWORD=QrS9tU8vW7xY6zA5bC4dE3fG2hI1jK
+# NEXTAUTH_SECRET=aL0ngR4nd0mStr1ng0fCh4r4ct3rsTh4t1sV3ryS3cur3AndH4rdT0Gu3ss1234567890

@@ -18,13 +18,15 @@ echo "This may take 5-10 minutes and requires 8GB+ RAM"
 echo ""
 
 # Build frontend with production environment variables
+# CRITICAL: Use /api/auth proxy endpoint for Supabase URL
 docker build \
   -t "${IMAGE_PREFIX}-frontend:${TAG}" \
   -f Dockerfile.nextjs \
-  --build-arg NEXT_PUBLIC_SUPABASE_URL=https://auth.offensivewizard.com \
-  --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=uc8bo6Z4ZI4Fhu9XVgSz5LhDRWEQ0joGPMiZYroXPps= \
+  --build-arg NEXT_PUBLIC_SUPABASE_URL=https://app.offensivewizard.com/api/auth \
+  --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzY2NzQ5NzMzLCJleHAiOjIwODIxMDk3MzN9.R7vaBwwIssuKBRIBN0jx7xvzs7rYxjeD3zcZXhF60eQ \
   --build-arg NEXT_PUBLIC_JUDGE0_API_URL=https://judge0.offensivewizard.com \
-  --build-arg NEXT_PUBLIC_BACKEND_URL=https://offensivewizard.com/api \
+  --build-arg NEXT_PUBLIC_BACKEND_URL=https://api.offensivewizard.com \
+  --build-arg NEXT_PUBLIC_SITE_URL=https://app.offensivewizard.com \
   .
 
 echo ""
