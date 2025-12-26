@@ -4,8 +4,6 @@
 # Optimized for Dokploy with Docker Swarm support
 # Swarm features: health checks, rolling updates, placement constraints
 
-version: '3.8'
-
 services:
   # ===================
   # SUPABASE AUTH STACK
