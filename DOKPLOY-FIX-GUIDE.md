@@ -37,6 +37,30 @@ The Supabase Postgres volume on Dokploy contains old data with mismatched creden
 - **`fix-dokploy-volumes.sh`**: Cleans up and resets the Supabase Postgres volume
 - **`diagnose-deployment.sh`**: Diagnoses deployment issues
 
+## How It Works Now
+
+### Correct Startup Sequence
+
+1. **`supabase-postgres`** starts
+   - PostgreSQL initializes (creates user from `POSTGRES_USER` env var)
+   - Healthcheck waits for database to be ready
+   - Status: ✅ HEALTHY
+
+2. **`supabase-init`** starts (waits for postgres healthy)
+   - Runs `00-create-user.sql` - creates/updates user with correct password
+   - Runs `01-create-auth-schema.sql` - creates auth schema and types
+   - Writes "READY" status file
+   - **Healthcheck succeeds only after scripts complete**
+   - Status: ✅ HEALTHY
+
+3. **`supabase-auth`** starts (waits for postgres AND init healthy)
+   - Only starts **AFTER** initialization scripts are complete
+   - Connects to database with correct credentials
+   - Runs GoTrue migrations successfully
+   - Status: ✅ HEALTHY
+
+The key fix: `supabase-auth` now depends on `supabase-init: service_healthy` instead of `service_started`, ensuring scripts finish before auth tries to connect.
+
 ## Deployment Steps
 
 ### Option A: Clean Deployment (Recommended)

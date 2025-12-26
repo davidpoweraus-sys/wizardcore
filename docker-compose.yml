@@ -47,8 +47,10 @@ services:
       PGUSER: ${SUPABASE_POSTGRES_USER:-supabase_auth_admin}
       PGPASSWORD: ${SUPABASE_POSTGRES_PASSWORD:-password}
       PGDATABASE: ${SUPABASE_POSTGRES_DB:-supabase_auth}
+      INIT_COMPLETE: "false"
     volumes:
       - ./init-scripts:/docker-entrypoint-initdb.d
+      - init_status:/status
     command: >
       sh -c "
       until pg_isready -h supabase-postgres -p 5432 -U ${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d ${SUPABASE_POSTGRES_DB:-supabase_auth}; do
@@ -56,14 +58,22 @@ services:
         sleep 2;
       done;
       echo 'Database ready. Running initialization scripts...';
-      psql -h supabase-postgres -p 5432 -U ${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d ${SUPABASE_POSTGRES_DB:-supabase_auth} -f /docker-entrypoint-initdb.d/00-create-user.sql || true;
+      psql -h supabase-postgres -p 5432 -U ${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d ${SUPABASE_POSTGRES_DB:-supabase_auth} -f /docker-entrypoint-initdb.d/00-create-user.sql || exit 1;
       echo 'User creation script completed.';
-      psql -h supabase-postgres -p 5432 -U ${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d ${SUPABASE_POSTGRES_DB:-supabase_auth} -f /docker-entrypoint-initdb.d/01-create-auth-schema.sql || true;
+      psql -h supabase-postgres -p 5432 -U ${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d ${SUPABASE_POSTGRES_DB:-supabase_auth} -f /docker-entrypoint-initdb.d/01-create-auth-schema.sql || exit 1;
       echo 'Auth schema initialized.';
+      echo 'READY' > /status/init.status;
+      echo 'Initialization complete. Keeping container alive for dependency tracking...';
       tail -f /dev/null
       "
     networks:
       - wizardcore-network
+    healthcheck:
+      test: ["CMD", "sh", "-c", "test -f /status/init.status && grep -q READY /status/init.status"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+      start_period: 10s
     deploy:
       restart_policy:
         condition: on-failure
@@ -74,7 +84,7 @@ services:
       supabase-postgres:
         condition: service_healthy
       supabase-init:
-        condition: service_started
+        condition: service_healthy
     environment:
       GOTRUE_API_HOST: ${GOTRUE_API_HOST:-0.0.0.0}
       GOTRUE_API_PORT: ${GOTRUE_API_PORT:-9999}
@@ -163,6 +173,44 @@ services:
       placement:
         constraints:
           - node.role == manager
+      restart_policy:
+        condition: on-failure
+
+  postgres-init:
+    image: postgres:15-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGUSER: ${POSTGRES_USER:-wizardcore}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-wizardcore}
+    volumes:
+      - ./postgres-init-scripts:/scripts
+    command: >
+      sh -c "
+      echo 'Waiting for database to be ready...';
+      until pg_isready -h postgres -p 5432 -U ${POSTGRES_USER:-wizardcore} -d ${POSTGRES_DB:-wizardcore}; do
+        echo 'Database not ready, waiting...';
+        sleep 2;
+      done;
+      echo 'Database ready. Waiting 10 seconds for migrations to complete...';
+      sleep 10;
+      echo 'Running post-migration initialization scripts...';
+      for script in /scripts/*.sql; do
+        if [ -f \"\$script\" ]; then
+          echo \"Executing: \$script\";
+          psql -h postgres -p 5432 -U ${POSTGRES_USER:-wizardcore} -d ${POSTGRES_DB:-wizardcore} -f \"\$script\" || echo \"Script \$script failed, continuing...\";
+        fi
+      done;
+      echo 'Post-migration initialization complete.';
+      tail -f /dev/null
+      "
+    networks:
+      - wizardcore-network
+    deploy:
       restart_policy:
         condition: on-failure
 
@@ -344,6 +392,8 @@ networks:
 
 volumes:
   supabase_postgres_data:
+    driver: local
+  init_status:
     driver: local
   postgres_data:
     driver: local
