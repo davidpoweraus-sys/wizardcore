@@ -11,12 +11,11 @@ END
 $$;
 
 -- Create enum types required by Supabase Auth migrations
--- factor_type
+-- factor_type (includes all possible values upfront)
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'factor_type' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN
-        CREATE TYPE auth.factor_type AS ENUM ('totp', 'webauthn');
-        ALTER TYPE auth.factor_type ADD VALUE 'phone';
+        CREATE TYPE auth.factor_type AS ENUM ('totp', 'webauthn', 'phone');
     END IF;
 END
 $$;

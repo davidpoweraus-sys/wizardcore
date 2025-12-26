@@ -55,6 +55,9 @@ services:
         echo 'Waiting for database...';
         sleep 2;
       done;
+      echo 'Database ready. Running initialization scripts...';
+      psql -h supabase-postgres -p 5432 -U ${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d ${SUPABASE_POSTGRES_DB:-supabase_auth} -f /docker-entrypoint-initdb.d/00-create-user.sql || true;
+      echo 'User creation script completed.';
       psql -h supabase-postgres -p 5432 -U ${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d ${SUPABASE_POSTGRES_DB:-supabase_auth} -f /docker-entrypoint-initdb.d/01-create-auth-schema.sql || true;
       echo 'Auth schema initialized.';
       tail -f /dev/null
@@ -70,13 +73,15 @@ services:
     depends_on:
       supabase-postgres:
         condition: service_healthy
+      supabase-init:
+        condition: service_started
     environment:
       GOTRUE_API_HOST: ${GOTRUE_API_HOST:-0.0.0.0}
       GOTRUE_API_PORT: ${GOTRUE_API_PORT:-9999}
       GOTRUE_DB_DRIVER: ${GOTRUE_DB_DRIVER:-postgres}
       GOTRUE_DB_DATABASE_URL: ${GOTRUE_DB_DATABASE_URL:-postgresql://supabase_auth_admin:password@supabase-postgres:5432/supabase_auth?sslmode=disable}
       GOTRUE_SITE_URL: ${GOTRUE_SITE_URL:-https://offensivewizard.com}
-      GOTRUE_JWT_SECRET: ${GOTRUE_JWT_SECRET}
+      GOTRUE_JWT_SECRET: ${GOTRUE_JWT_SECRET:-your-super-secret-jwt-token-with-at-least-32-characters}
       GOTRUE_JWT_EXP: ${GOTRUE_JWT_EXP:-3600}
       GOTRUE_JWT_AUD: ${GOTRUE_JWT_AUD:-authenticated}
       GOTRUE_JWT_ISSUER: ${GOTRUE_JWT_ISSUER:-supabase}
@@ -89,6 +94,7 @@ services:
       GOTRUE_CORS_EXPOSED_HEADERS: ${GOTRUE_CORS_EXPOSED_HEADERS:-X-Total-Count}
       GOTRUE_CORS_ALLOW_CREDENTIALS: ${GOTRUE_CORS_ALLOW_CREDENTIALS:-true}
       GOTRUE_DB_AUTOMIGRATE: ${GOTRUE_DB_AUTOMIGRATE:-true}
+      GOTRUE_LOG_LEVEL: ${GOTRUE_LOG_LEVEL:-info}
     ports:
       - "9999:9999"
     networks:
@@ -96,11 +102,11 @@ services:
         aliases:
           - supabase-auth
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:9999/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9999/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     deploy:
       replicas: 1
       update_config:
@@ -110,6 +116,7 @@ services:
       restart_policy:
         condition: on-failure
         delay: 5s
+        max_attempts: 5
 
   # ===================
   # WIZARDCORE STACK
