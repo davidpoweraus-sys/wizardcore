@@ -252,11 +252,16 @@ services:
       supabase-auth:
         condition: service_healthy
     environment:
+      # Public URLs (used by browser for reference)
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-https://auth.offensivewizard.com}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
       NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-https://offensivewizard.com/api}
       NEXT_PUBLIC_JUDGE0_API_URL: ${NEXT_PUBLIC_JUDGE0_API_URL:-https://judge0.offensivewizard.com}
+      # Internal URLs (used by proxy routes to connect to services)
       SUPABASE_INTERNAL_URL: ${SUPABASE_INTERNAL_URL:-http://supabase-auth:9999}
+      GOTRUE_URL: ${GOTRUE_URL:-http://supabase-auth:9999}
+      BACKEND_URL: ${BACKEND_URL:-http://backend:8080}
+      JUDGE0_URL: ${JUDGE0_URL:-http://judge0:2358}
     ports:
       - "3001:3000"
     networks:
