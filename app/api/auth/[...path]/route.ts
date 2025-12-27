@@ -15,7 +15,9 @@ import { NextRequest, NextResponse } from 'next/server'
  */
 
 // GoTrue server URL - must point to your standalone GoTrue instance
-const GOTRUE_URL = process.env.GOTRUE_URL || process.env.SUPABASE_INTERNAL_URL || 'https://auth.offensivewizard.com'
+// In Docker: use internal container name
+// Outside Docker: use public URL
+const GOTRUE_URL = process.env.GOTRUE_URL || process.env.SUPABASE_INTERNAL_URL || 'http://supabase-auth:9999'
 
 // Handle OPTIONS preflight requests for CORS
 export async function OPTIONS(request: NextRequest) {
