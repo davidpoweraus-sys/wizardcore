@@ -20,7 +20,7 @@ services:
       - supabase_postgres_data:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
     networks:
-      - wizardcore-network
+      - default
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d $${SUPABASE_POSTGRES_DB:-supabase_auth}"]
       interval: 10s
@@ -61,7 +61,7 @@ services:
         echo 'Initialization complete. Keeping container alive for dependency tracking...'
         tail -f /dev/null
     networks:
-      - wizardcore-network
+      - default
     healthcheck:
       test: ["CMD", "sh", "-c", "test -f /status/init.status && grep -q READY /status/init.status"]
       interval: 5s
@@ -100,7 +100,7 @@ services:
     ports:
       - "9999:9999"
     networks:
-      wizardcore-network:
+      default:
         aliases:
           - supabase-auth
     healthcheck:
@@ -124,7 +124,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - wizardcore-network
+      - default
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-wizardcore} -d $${POSTGRES_DB:-wizardcore}"]
       interval: 10s
@@ -139,7 +139,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - wizardcore-network
+      - default
     healthcheck:
       test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 10s
@@ -181,7 +181,7 @@ services:
         echo 'Post-migration initialization complete.'
         tail -f /dev/null
     networks:
-      - wizardcore-network
+      - default
     restart: on-failure
 
   backend:
@@ -204,7 +204,7 @@ services:
       SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
       FRONTEND_URL: ${FRONTEND_URL:-https://offensivewizard.com}
     networks:
-      - wizardcore-network
+      - default
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
       interval: 10s
@@ -226,9 +226,9 @@ services:
       NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-https://offensivewizard.com/api}
       NEXT_PUBLIC_JUDGE0_API_URL: ${NEXT_PUBLIC_JUDGE0_API_URL:-https://judge0.offensivewizard.com}
     ports:
-      - "3000:3000"
+      - "3001:3000"
     networks:
-      - wizardcore-network
+      - default
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
       interval: 10s
@@ -250,7 +250,7 @@ services:
     volumes:
       - judge0_postgres_data:/var/lib/postgresql/data
     networks:
-      - wizardcore-network
+      - default
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${JUDGE0_POSTGRES_USER:-judge0} -d $${JUDGE0_POSTGRES_DB:-judge0}"]
       interval: 10s
@@ -264,7 +264,7 @@ services:
     volumes:
       - judge0_redis_data:/data
     networks:
-      - wizardcore-network
+      - default
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -291,7 +291,7 @@ services:
     ports:
       - "2358:2358"
     networks:
-      - wizardcore-network
+      - default
     restart: unless-stopped
 
   judge0-worker:
@@ -311,16 +311,12 @@ services:
       JUDGE0_API_URL: http://judge0:2358
     command: ["./scripts/workers"]
     networks:
-      - wizardcore-network
+      - default
     restart: unless-stopped
 
 # ===================
 # NETWORKS
 # ===================
-
-networks:
-  wizardcore-network:
-    driver: bridge
 
 # ===================
 # VOLUMES
@@ -333,3 +329,12 @@ volumes:
   redis_data:
   judge0_postgres_data:
   judge0_redis_data:
+
+# ===================
+# NETWORKS
+# ===================
+
+networks:
+  default:
+    name: ${COMPOSE_PROJECT_NAME}_default
+    driver: bridge
