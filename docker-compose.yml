@@ -261,16 +261,6 @@ services:
     networks:
       - default
       - dokploy-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.wizardcore-frontend.rule=Host(`app.offensivewizard.com`)"
-      - "traefik.http.routers.wizardcore-frontend.entrypoints=web"
-      - "traefik.http.routers.wizardcore-frontend.middlewares=redirect-to-https@file"
-      - "traefik.http.routers.wizardcore-frontend-secure.rule=Host(`app.offensivewizard.com`)"
-      - "traefik.http.routers.wizardcore-frontend-secure.entrypoints=websecure"
-      - "traefik.http.routers.wizardcore-frontend-secure.tls.certresolver=letsencrypt"
-      - "traefik.http.services.wizardcore-frontend.loadbalancer.server.port=3000"
-      - "traefik.docker.network=dokploy-network"
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
       interval: 10s
