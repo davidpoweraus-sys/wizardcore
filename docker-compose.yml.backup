@@ -1,9 +1,8 @@
 # ==============================================
-# WIZARDCORE DOCKER COMPOSE - STANDARD (NON-SWARM)
+# WIZARDCORE DOCKER COMPOSE - PRODUCTION
 # ==============================================
-# Optimized for Dokploy with standard docker-compose
-
-version: '3.8'
+# Optimized for Dokploy with Docker Swarm support
+# Swarm features: health checks, rolling updates, placement constraints
 
 services:
   # ===================
@@ -22,12 +21,20 @@ services:
     networks:
       - wizardcore-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d $${SUPABASE_POSTGRES_DB:-supabase_auth}"]
+      test: ["CMD-SHELL", "pg_isready -U ${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d ${SUPABASE_POSTGRES_DB:-supabase_auth}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
-    restart: unless-stopped
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
 
   supabase-init:
     image: postgres:15-alpine
@@ -68,7 +75,9 @@ services:
       timeout: 3s
       retries: 60
       start_period: 10s
-    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
 
   supabase-auth:
     image: supabase/gotrue:v2.184.0
@@ -83,7 +92,7 @@ services:
       GOTRUE_DB_DRIVER: ${GOTRUE_DB_DRIVER:-postgres}
       GOTRUE_DB_DATABASE_URL: ${GOTRUE_DB_DATABASE_URL:-postgresql://supabase_auth_admin:password@supabase-postgres:5432/supabase_auth?sslmode=disable}
       GOTRUE_SITE_URL: ${GOTRUE_SITE_URL:-https://offensivewizard.com}
-      GOTRUE_JWT_SECRET: ${GOTRUE_JWT_SECRET}
+      GOTRUE_JWT_SECRET: ${GOTRUE_JWT_SECRET:-your-super-secret-jwt-token-with-at-least-32-characters}
       GOTRUE_JWT_EXP: ${GOTRUE_JWT_EXP:-3600}
       GOTRUE_JWT_AUD: ${GOTRUE_JWT_AUD:-authenticated}
       GOTRUE_JWT_ISSUER: ${GOTRUE_JWT_ISSUER:-supabase}
@@ -126,12 +135,18 @@ services:
     networks:
       - wizardcore-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-wizardcore} -d $${POSTGRES_DB:-wizardcore}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wizardcore} -d ${POSTGRES_DB:-wizardcore}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
-    restart: unless-stopped
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
 
   redis:
     image: redis:7-alpine
@@ -145,7 +160,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
 
   postgres-init:
     image: postgres:15-alpine
@@ -182,7 +203,9 @@ services:
         tail -f /dev/null
     networks:
       - wizardcore-network
-    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
 
   backend:
     image: limpet/wizardcore-backend:latest
@@ -252,12 +275,18 @@ services:
     networks:
       - wizardcore-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${JUDGE0_POSTGRES_USER:-judge0} -d $${JUDGE0_POSTGRES_DB:-judge0}"]
+      test: ["CMD-SHELL", "pg_isready -U ${JUDGE0_POSTGRES_USER:-judge0} -d ${JUDGE0_POSTGRES_DB:-judge0}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
-    restart: unless-stopped
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
 
   judge0-redis:
     image: redis:7.2-alpine
@@ -270,7 +299,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
   judge0:
     image: judge0/judge0:latest
@@ -292,7 +324,11 @@ services:
       - "2358:2358"
     networks:
       - wizardcore-network
-    restart: unless-stopped
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
 
   judge0-worker:
     image: judge0/judge0:latest
@@ -312,7 +348,11 @@ services:
     command: ["./scripts/workers"]
     networks:
       - wizardcore-network
-    restart: unless-stopped
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 5s
 
 # ===================
 # NETWORKS
@@ -320,7 +360,8 @@ services:
 
 networks:
   wizardcore-network:
-    driver: bridge
+    driver: overlay
+    attachable: true
 
 # ===================
 # VOLUMES
@@ -328,8 +369,14 @@ networks:
 
 volumes:
   supabase_postgres_data:
+    driver: local
   init_status:
+    driver: local
   postgres_data:
+    driver: local
   redis_data:
+    driver: local
   judge0_postgres_data:
+    driver: local
   judge0_redis_data:
+    driver: local
