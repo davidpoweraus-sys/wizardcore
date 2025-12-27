@@ -1,9 +1,14 @@
 /**
  * Judge0 integration service for code execution.
- * Assumes a self‑hosted Judge0 instance running at JUDGE0_API_URL.
+ * Uses the Next.js API proxy to avoid CORS issues.
  */
 
-const JUDGE0_API_URL = process.env.NEXT_PUBLIC_JUDGE0_API_URL || 'http://localhost:2358'
+// Use the Next.js API proxy instead of direct Judge0 URL
+// This solves CORS issues and ensures requests work in all environments
+const USE_PROXY = true
+const JUDGE0_API_URL = USE_PROXY
+  ? '/api/judge0'
+  : (process.env.NEXT_PUBLIC_JUDGE0_API_URL || 'http://localhost:2358')
 const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY || ''
 
 export interface Submission {

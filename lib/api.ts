@@ -1,6 +1,11 @@
 import { createClient } from './supabase/client'
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080'
+// Use the Next.js API proxy instead of direct backend URL
+// This solves CORS issues and ensures requests work in all environments
+const USE_PROXY = true
+const BACKEND_URL = USE_PROXY
+  ? '/api/backend/v1'
+  : (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080') + '/v1'
 
 export interface ApiError {
   message: string
@@ -22,7 +27,7 @@ export async function apiFetch<T = any>(
     headers.set('Authorization', `Bearer ${session.access_token}`)
   }
 
-  const url = `${BACKEND_URL}/v1${endpoint}`
+  const url = `${BACKEND_URL}${endpoint}`
   const response = await fetch(url, {
     ...options,
     headers,
