@@ -84,7 +84,7 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     
     // CRITICAL: Strip /auth/v1 prefix that Supabase client adds
     // GoTrue serves endpoints at root level, not under /auth/v1/
-    // 
+    //
     // Examples:
     //   /auth/v1/signup    → /signup
     //   /auth/v1/token     → /token
@@ -97,13 +97,12 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     const targetUrl = `${baseUrl}/${targetPath}${url.search}`
 
     // Log request details for debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔄 GoTrue Proxy:')
-      console.log('  Method:', request.method)
-      console.log('  Original:', path.join('/'))
-      console.log('  Stripped:', targetPath)
-      console.log('  Target:', targetUrl)
-    }
+    console.log('🔄 GoTrue Proxy:')
+    console.log('  Method:', request.method)
+    console.log('  Original:', path.join('/'))
+    console.log('  Stripped:', targetPath)
+    console.log('  Target:', targetUrl)
+    console.log('  GOTRUE_URL:', GOTRUE_URL)
 
     // Copy headers from incoming request
     const headers = new Headers()
@@ -167,19 +166,35 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     console.error('❌ Proxy error:')
     console.error('  Error:', error instanceof Error ? error.message : String(error))
     console.error('  Target:', GOTRUE_URL)
+    console.error('  Error type:', error instanceof Error ? error.constructor.name : typeof(error))
+    
+    // Check for common connection errors
+    let errorMessage = error instanceof Error ? error.message : 'Unknown proxy error'
+    let statusCode = 502
+    
+    if (error instanceof Error) {
+      if (error.message.includes('ECONNREFUSED') || error.message.includes('ENOTFOUND')) {
+        errorMessage = `Cannot connect to GoTrue server at ${GOTRUE_URL}. Check if the service is running and accessible.`
+        console.error('  ⚠️ Network error - service may not be running or DNS not resolving')
+      } else if (error.message.includes('fetch failed')) {
+        errorMessage = `Failed to connect to GoTrue server at ${GOTRUE_URL}. This could be a network, DNS, or SSL issue.`
+        console.error('  ⚠️ Fetch failed - check network connectivity and SSL certificates')
+      }
+    }
 
     // Return error response
     return new NextResponse(
       JSON.stringify({
         error: 'proxy_error',
-        message: error instanceof Error ? error.message : 'Unknown proxy error',
+        message: errorMessage,
         details: {
           gotrue_url: GOTRUE_URL,
           error_type: error instanceof Error ? error.constructor.name : typeof error,
+          suggestion: 'If running in Docker, ensure SUPABASE_INTERNAL_URL is set to http://supabase-auth:9999'
         }
       }),
       {
-        status: 502, // Bad Gateway
+        status: statusCode,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': request.headers.get('origin') || '*',
