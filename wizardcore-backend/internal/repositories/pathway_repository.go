@@ -79,6 +79,73 @@ func (r *PathwayRepository) FindAll() ([]models.Pathway, error) {
 	return pathways, nil
 }
 
+func (r *PathwayRepository) FindAllWithEnrollment(userID uuid.UUID) ([]models.PathwayWithEnrollment, error) {
+	query := `
+		SELECT 
+			p.id, p.title, p.subtitle, p.description, p.level, p.duration_weeks,
+			p.student_count, p.rating, p.module_count, p.color_gradient, p.icon,
+			p.is_locked, p.sort_order, p.prerequisites, p.created_at, p.updated_at,
+			CASE WHEN upe.user_id IS NOT NULL THEN true ELSE false END as is_enrolled,
+			COALESCE(upe.progress_percentage, 0) as progress
+		FROM pathways p
+		LEFT JOIN user_pathway_enrollments upe ON p.id = upe.pathway_id AND upe.user_id = $1
+		ORDER BY p.sort_order, p.title
+	`
+	rows, err := r.db.Query(query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query pathways with enrollment: %w", err)
+	}
+	defer rows.Close()
+
+	var pathways []models.PathwayWithEnrollment
+	for rows.Next() {
+		var p models.PathwayWithEnrollment
+		var subtitle, description, colorGradient, icon sql.NullString
+		var prerequisites pq.StringArray
+		err := rows.Scan(
+			&p.ID,
+			&p.Title,
+			&subtitle,
+			&description,
+			&p.Level,
+			&p.DurationWeeks,
+			&p.StudentCount,
+			&p.Rating,
+			&p.ModuleCount,
+			&colorGradient,
+			&icon,
+			&p.IsLocked,
+			&p.SortOrder,
+			&prerequisites,
+			&p.CreatedAt,
+			&p.UpdatedAt,
+			&p.IsEnrolled,
+			&p.Progress,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan pathway with enrollment: %w", err)
+		}
+		if subtitle.Valid {
+			p.Subtitle = &subtitle.String
+		}
+		if description.Valid {
+			p.Description = &description.String
+		}
+		if colorGradient.Valid {
+			p.ColorGradient = &colorGradient.String
+		}
+		if icon.Valid {
+			p.Icon = &icon.String
+		}
+		p.Prerequisites = prerequisites
+		pathways = append(pathways, p)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating pathways rows: %w", err)
+	}
+	return pathways, nil
+}
+
 func (r *PathwayRepository) FindByID(id uuid.UUID) (*models.Pathway, error) {
 	query := `
 		SELECT id, title, subtitle, description, level, duration_weeks,

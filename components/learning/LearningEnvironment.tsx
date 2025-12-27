@@ -1,103 +1,155 @@
 'use client'
 
-import { useState } from 'react'
-import { Menu, BookOpen, Code2, CheckCircle2, Lightbulb, ChevronRight, Play, Send, Zap, Target, Users, Clock, Loader2 } from 'lucide-react'
-import { submitCode, LANGUAGES } from '@/lib/judge0/service'
+import { useState, useEffect } from 'react'
+import { Menu, BookOpen, Code2, CheckCircle2, Lightbulb, ChevronRight, Play, Send, Target, Users, Clock, Loader2, Save } from 'lucide-react'
+import { submitCode } from '@/lib/judge0/service'
+import { api } from '@/lib/api'
 
-export default function LearningEnvironment() {
+interface ExerciseWithTests {
+  exercise: {
+    id: string
+    module_id: string
+    title: string
+    difficulty: string
+    points: number
+    time_limit_minutes?: number
+    sort_order: number
+    objectives: string[]
+    content?: string
+    examples?: any[]
+    description?: string
+    constraints: string[]
+    hints: string[]
+    starter_code?: string
+    solution_code?: string
+    language_id: number
+    tags: string[]
+    concurrent_solvers: number
+    total_submissions: number
+    total_completions: number
+    average_completion_time?: number
+    created_at: string
+    updated_at: string
+  }
+  test_cases: Array<{
+    id: string
+    exercise_id: string
+    input?: string
+    expected_output: string
+    is_hidden: boolean
+    points: number
+    sort_order: number
+    created_at: string
+  }>
+}
+
+interface Submission {
+  id: string
+  user_id: string
+  exercise_id: string
+  source_code: string
+  language_id: number
+  status: string
+  test_cases_passed: number
+  test_cases_total: number
+  points_earned: number
+  is_correct: boolean
+  created_at: string
+  updated_at: string
+}
+
+interface LearningEnvironmentProps {
+  exerciseId: string
+}
+
+export default function LearningEnvironment({ exerciseId }: LearningEnvironmentProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [activeTab, setActiveTab] = useState<'lesson' | 'code' | 'tests' | 'hints'>('lesson')
-  const [code, setCode] = useState(`def calculate_sum(numbers):
-    """
-    Calculate the sum of a list of numbers.
-    
-    Args:
-        numbers (list): List of integers
-    
-    Returns:
-        int: Sum of the numbers
-    """
-    # Write your solution here
-    total = 0
-    for num in numbers:
-        total += num
-    return total`)
-
-  const lesson = {
-    title: 'Python Functions: Sum Calculation',
-    module: 'Module 1: The Hacker\'s Toolkit',
-    objectives: [
-      'Understand function syntax in Python',
-      'Learn to iterate over lists',
-      'Practice returning values from functions',
-      'Apply to security tooling scenarios',
-    ],
-    content: `In offensive security, you'll often need to process lists of data—IP addresses, ports, payloads, etc. Being able to quickly sum, filter, and transform lists is essential.
-
-## Why This Matters
-- Log analysis: Summing request counts
-- Payload generation: Calculating checksums
-- Data exfiltration: Aggregating stolen data sizes
-
-## Key Concepts
-- Functions encapsulate reusable logic
-- Loops iterate over collections
-- Return statements provide output`,
-    examples: [
-      {
-        code: `# Basic list iteration
-ports = [80, 443, 22, 8080]
-for port in ports:
-    print(f"Scanning port {port}")`,
-        output: 'Scanning port 80\nScanning port 443\nScanning port 22\nScanning port 8080',
-      },
-      {
-        code: `# Function with return
-def check_port_open(port):
-    return port in open_ports`,
-        output: '',
-      },
-    ],
-  }
-
-  const exercise = {
-    title: 'Sum of Port List',
-    difficulty: 'BEGINNER',
-    points: 100,
-    description: `In network scanning, you often need to calculate the total number of ports scanned. Write a function that sums a list of port numbers.
-
-Your function should:
-1. Accept a list of integers (port numbers)
-2. Return the sum of all numbers in the list
-3. Handle empty lists (return 0)`,
-    constraints: [
-      'Do not use the built-in sum() function',
-      'Time complexity must be O(n)',
-      'Function name must be calculate_sum',
-    ],
-    testCases: [
-      { input: '[1, 2, 3]', expectedOutput: '6' },
-      { input: '[]', expectedOutput: '0' },
-      { input: '[80, 443, 22]', expectedOutput: '545' },
-    ],
-    hints: [
-      'Use a for loop to iterate through the list',
-      'Initialize a variable to store the total',
-      'Add each element to the total',
-      'Return the total after the loop',
-    ],
-  }
-
+  const [code, setCode] = useState('')
+  const [exerciseData, setExerciseData] = useState<ExerciseWithTests | null>(null)
+  const [, setLatestSubmission] = useState<Submission | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [output, setOutput] = useState<string>('')
   const [isRunning, setIsRunning] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch exercise data and latest submission
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        // Fetch exercise data
+        const exerciseResponse = await api.get<ExerciseWithTests>(`/exercises/${exerciseId}`)
+        setExerciseData(exerciseResponse)
+        
+        // Set starter code from exercise or latest submission
+        if (exerciseResponse.exercise.starter_code) {
+          setCode(exerciseResponse.exercise.starter_code)
+        }
+        
+        // Fetch latest submission
+        try {
+          const submissionResponse = await api.get<{ submission: Submission }>(`/submissions/latest/${exerciseId}`)
+          if (submissionResponse.submission && submissionResponse.submission.source_code) {
+            setCode(submissionResponse.submission.source_code)
+            setLatestSubmission(submissionResponse.submission)
+          }
+        } catch (submissionError) {
+          // It's okay if no submission exists yet
+          console.log('No previous submission found')
+        }
+      } catch (err: any) {
+        console.error('Failed to fetch exercise data:', err)
+        setError(err.message || 'Failed to load exercise')
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    if (exerciseId) {
+      fetchData()
+    }
+  }, [exerciseId])
+
+  // Auto-save functionality
+  useEffect(() => {
+    if (!exerciseId || !code || loading) return
+    
+    const autoSave = async () => {
+      try {
+        setSaving(true)
+        await api.post(`/submissions/save-draft/${exerciseId}`, {
+          source_code: code,
+          language_id: exerciseData?.exercise.language_id || 71 // Default to Python
+        })
+      } catch (err) {
+        console.error('Auto-save failed:', err)
+      } finally {
+        setSaving(false)
+      }
+    }
+    
+    const timer = setTimeout(autoSave, 30000) // Auto-save every 30 seconds
+    
+    return () => clearTimeout(timer)
+  }, [code, exerciseId, exerciseData, loading])
 
   const handleRunCode = async () => {
+    if (!code.trim()) {
+      setOutput('> Error: No code to run')
+      return
+    }
+    
     setIsRunning(true)
     setOutput('> Running code...\n')
     try {
       const result = await submitCode({
         source_code: code,
-        language_id: 71, // Python 3.8.1
+        language_id: exerciseData?.exercise.language_id || 71, // Default to Python
         stdin: '',
         expected_output: '',
       })
@@ -110,10 +162,93 @@ Your function should:
     }
   }
 
-  const handleSubmit = () => {
-    console.log('Submitting solution')
-    // Validate and submit to backend
+  const handleSubmit = async () => {
+    if (!code.trim()) {
+      setOutput('> Error: No code to submit')
+      return
+    }
+    
+    if (!exerciseData) {
+      setOutput('> Error: Exercise data not loaded')
+      return
+    }
+    
+    setSubmitting(true)
+    setOutput('> Submitting solution...\n')
+    
+    try {
+      const response = await api.post<{ submission: Submission }>('/submissions', {
+        exercise_id: exerciseId,
+        source_code: code,
+        language_id: exerciseData.exercise.language_id,
+      })
+      
+      const submission = response.submission
+      setLatestSubmission(submission)
+      
+      if (submission.is_correct) {
+        setOutput(`> ✅ Submission accepted! You earned ${submission.points_earned} XP\n> Test cases passed: ${submission.test_cases_passed}/${submission.test_cases_total}`)
+      } else {
+        setOutput(`> ❌ Submission rejected\n> Test cases passed: ${submission.test_cases_passed}/${submission.test_cases_total}\n> Status: ${submission.status}`)
+      }
+    } catch (err: any) {
+      setOutput(`> Error submitting solution: ${err.message || 'Unknown error'}`)
+    } finally {
+      setSubmitting(false)
+    }
   }
+
+  const handleSaveDraft = async () => {
+    if (!code.trim() || !exerciseData) return
+    
+    try {
+      setSaving(true)
+      await api.post(`/submissions/save-draft/${exerciseId}`, {
+        source_code: code,
+        language_id: exerciseData.exercise.language_id,
+      })
+      setOutput('> Draft saved successfully')
+    } catch (err: any) {
+      setOutput(`> Error saving draft: ${err.message || 'Unknown error'}`)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleResetCode = () => {
+    if (exerciseData?.exercise.starter_code) {
+      setCode(exerciseData.exercise.starter_code)
+      setOutput('> Code reset to starter template')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center bg-bg-primary">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-neon-cyan mx-auto mb-4" />
+          <p className="text-text-secondary">Loading exercise...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !exerciseData) {
+    return (
+      <div className="h-full flex items-center justify-center bg-bg-primary">
+        <div className="text-center">
+          <p className="text-red-400 mb-2">Error loading exercise</p>
+          <p className="text-text-secondary">{error || 'Exercise not found'}</p>
+        </div>
+      </div>
+    )
+  }
+
+  const exercise = exerciseData.exercise
+  const testCases = exerciseData.test_cases.filter(tc => !tc.is_hidden) // Show only non-hidden test cases
+
+  // Format examples from exercise data
+  const examples = exercise.examples ? (Array.isArray(exercise.examples) ? exercise.examples : []) : []
 
   return (
     <div className="h-full flex flex-col bg-bg-primary">
@@ -128,19 +263,21 @@ Your function should:
           </button>
           <div>
             <h1 className="text-lg font-bold text-text-primary">{exercise.title}</h1>
-            <p className="text-sm text-text-secondary">{lesson.module}</p>
+            <p className="text-sm text-text-secondary">Module: {exercise.module_id}</p>
           </div>
         </div>
         
         <div className="flex items-center gap-6">
           <div className="hidden md:flex items-center gap-4">
-            <div className="text-sm text-text-secondary">
-              <Clock className="w-4 h-4 inline mr-2" />
-              15 min remaining
-            </div>
+            {exercise.time_limit_minutes && (
+              <div className="text-sm text-text-secondary">
+                <Clock className="w-4 h-4 inline mr-2" />
+                {exercise.time_limit_minutes} min remaining
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-text-muted" />
-              <span className="text-sm text-text-secondary">1,245 solving</span>
+              <span className="text-sm text-text-secondary">{exercise.concurrent_solvers} solving</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -173,82 +310,92 @@ Your function should:
               </div>
 
               {/* Learning Objectives */}
-              <div className="mb-8 p-4 rounded-xl bg-gradient-to-r from-neon-cyan/10 to-neon-lavender/10 border border-neon-cyan/20">
-                <h3 className="font-semibold text-text-primary mb-3 flex items-center gap-2">
-                  <Target className="w-4 h-4" />
-                  Learning Objectives
-                </h3>
-                <ul className="space-y-2">
-                  {lesson.objectives.map((obj, idx) => (
-                    <li key={idx} className="text-sm text-text-secondary flex items-start gap-2">
-                      <ChevronRight className="w-4 h-4 text-neon-cyan mt-0.5 flex-shrink-0" />
-                      {obj}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Lesson Content */}
-              <div className="prose prose-sm max-w-none text-text-primary">
-                <h3 className="text-xl font-bold mb-4">{lesson.title}</h3>
-                <div className="whitespace-pre-line text-text-secondary mb-6">
-                  {lesson.content}
-                </div>
-              </div>
-
-              {/* Examples */}
-              <div className="mb-8">
-                <h3 className="font-semibold text-text-primary mb-3 flex items-center gap-2">
-                  <Code2 className="w-4 h-4" />
-                  Examples
-                </h3>
-                <div className="space-y-4">
-                  {lesson.examples.map((example, idx) => (
-                    <div key={idx} className="bg-bg-tertiary border border-border-subtle rounded-lg p-4">
-                      <pre className="text-sm font-mono text-green-400 overflow-x-auto">
-                        {example.code}
-                      </pre>
-                      {example.output && (
-                        <div className="mt-3">
-                          <p className="text-xs text-text-muted mb-1">Output:</p>
-                          <pre className="text-sm font-mono bg-black/30 p-2 rounded">
-                            {example.output}
-                          </pre>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Exercise Instructions */}
-              <div className="border-t border-border-subtle pt-6">
-                <h3 className="font-bold text-text-primary mb-3">Exercise Instructions</h3>
-                <p className="text-text-secondary mb-4">{exercise.description}</p>
-                
-                <div className="mb-4">
-                  <h4 className="text-sm font-semibold text-text-primary mb-2">Constraints:</h4>
-                  <ul className="text-sm text-text-secondary space-y-1">
-                    {exercise.constraints.map((constraint, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <span className="text-neon-cyan">•</span>
-                        {constraint}
+              {exercise.objectives && exercise.objectives.length > 0 && (
+                <div className="mb-8 p-4 rounded-xl bg-gradient-to-r from-neon-cyan/10 to-neon-lavender/10 border border-neon-cyan/20">
+                  <h3 className="font-semibold text-text-primary mb-3 flex items-center gap-2">
+                    <Target className="w-4 h-4" />
+                    Learning Objectives
+                  </h3>
+                  <ul className="space-y-2">
+                    {exercise.objectives.map((obj, idx) => (
+                      <li key={idx} className="text-sm text-text-secondary flex items-start gap-2">
+                        <ChevronRight className="w-4 h-4 text-neon-cyan mt-0.5 flex-shrink-0" />
+                        {obj}
                       </li>
                     ))}
                   </ul>
                 </div>
+              )}
 
-                <div>
-                  <h4 className="text-sm font-semibold text-text-primary mb-2">Example Test Cases:</h4>
-                  {exercise.testCases.slice(0, 2).map((test, idx) => (
-                    <div key={idx} className="text-sm mb-3 bg-bg-tertiary p-3 rounded border border-border-subtle">
-                      <div className="font-mono">
-                        <div><span className="text-text-muted">Input:</span> {test.input}</div>
-                        <div><span className="text-text-muted">Expected Output:</span> {test.expectedOutput}</div>
-                      </div>
-                    </div>
-                  ))}
+              {/* Lesson Content */}
+              {exercise.content && (
+                <div className="prose prose-sm max-w-none text-text-primary">
+                  <h3 className="text-xl font-bold mb-4">{exercise.title}</h3>
+                  <div className="whitespace-pre-line text-text-secondary mb-6">
+                    {exercise.content}
+                  </div>
                 </div>
+              )}
+
+              {/* Examples */}
+              {examples.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="font-semibold text-text-primary mb-3 flex items-center gap-2">
+                    <Code2 className="w-4 h-4" />
+                    Examples
+                  </h3>
+                  <div className="space-y-4">
+                    {examples.map((example: any, idx) => (
+                      <div key={idx} className="bg-bg-tertiary border border-border-subtle rounded-lg p-4">
+                        <pre className="text-sm font-mono text-green-400 overflow-x-auto">
+                          {example.code || JSON.stringify(example, null, 2)}
+                        </pre>
+                        {example.output && (
+                          <div className="mt-3">
+                            <p className="text-xs text-text-muted mb-1">Output:</p>
+                            <pre className="text-sm font-mono bg-black/30 p-2 rounded">
+                              {example.output}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Exercise Instructions */}
+              <div className="border-t border-border-subtle pt-6">
+                <h3 className="font-bold text-text-primary mb-3">Exercise Instructions</h3>
+                <p className="text-text-secondary mb-4">{exercise.description || 'Complete the exercise as described.'}</p>
+                
+                {exercise.constraints && exercise.constraints.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="text-sm font-semibold text-text-primary mb-2">Constraints:</h4>
+                    <ul className="text-sm text-text-secondary space-y-1">
+                      {exercise.constraints.map((constraint, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="text-neon-cyan">•</span>
+                          {constraint}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {testCases.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-text-primary mb-2">Example Test Cases:</h4>
+                    {testCases.slice(0, 2).map((test, idx) => (
+                      <div key={idx} className="text-sm mb-3 bg-bg-tertiary p-3 rounded border border-border-subtle">
+                        <div className="font-mono">
+                          <div><span className="text-text-muted">Input:</span> {test.input || '(none)'}</div>
+                          <div><span className="text-text-muted">Expected Output:</span> {test.expected_output}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -285,8 +432,13 @@ Your function should:
                 <div className="max-w-3xl">
                   <h2 className="text-2xl font-bold text-text-primary mb-4">Lesson Overview</h2>
                   <div className="text-text-secondary space-y-4">
-                    <p>This lesson teaches you how to write Python functions for security tooling.</p>
-                    <p>You'll apply this knowledge to build a port scanner aggregator in the next module.</p>
+                    {exercise.content ? (
+                      <div className="prose prose-invert max-w-none">
+                        <div dangerouslySetInnerHTML={{ __html: exercise.content.replace(/\n/g, '<br/>') }} />
+                      </div>
+                    ) : (
+                      <p>No lesson content available for this exercise.</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -297,61 +449,72 @@ Your function should:
                 {/* Editor */}
                 <div className="flex-1 p-4">
                   <div className="h-full border border-border-subtle rounded-lg overflow-hidden">
-                    <div className="bg-bg-tertiary px-4 py-2 border-b border-border-subtle text-sm text-text-secondary font-mono">
-                      exercise.py
+                    <div className="bg-bg-tertiary px-4 py-2 border-b border-border-subtle text-sm text-text-secondary font-mono flex justify-between items-center">
+                      <span>exercise.py</span>
+                      <div className="flex items-center gap-2">
+                        {saving && (
+                          <span className="text-xs text-text-muted flex items-center gap-1">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            Saving...
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <textarea
                       value={code}
                       onChange={(e) => setCode(e.target.value)}
-                      className="w-full h-full p-4 font-mono text-sm bg-bg-tertiary text-text-primary resize-none focus:outline-none"
+                      className="w-full h-full bg-bg-primary text-text-primary font-mono text-sm p-4 resize-none focus:outline-none"
                       spellCheck="false"
+                      placeholder="Write your code here..."
                     />
                   </div>
                 </div>
-
-                {/* Actions & Output */}
-                <div className="border-t border-border-default p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex gap-3">
-                      <button
-                        onClick={handleRunCode}
-                        disabled={isRunning}
-                        className="px-4 py-2 bg-gradient-to-r from-neon-cyan to-neon-lavender text-white rounded-lg font-medium hover:opacity-90 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isRunning ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Running...
-                          </>
-                        ) : (
-                          <>
-                            <Play className="w-4 h-4" />
-                            Run Code
-                          </>
-                        )}
-                      </button>
-                      <button
-                        onClick={handleSubmit}
-                        className="px-4 py-2 bg-gradient-to-r from-neon-pink to-neon-purple text-white rounded-lg font-medium hover:opacity-90 transition flex items-center gap-2"
-                      >
-                        <Send className="w-4 h-4" />
-                        Submit Solution
-                      </button>
-                      <button className="px-4 py-2 border border-border-subtle text-text-secondary rounded-lg hover:bg-bg-tertiary transition">
-                        Reset
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-text-muted">
-                      <Zap className="w-4 h-4" />
-                      <span>Powered by Judge0</span>
-                    </div>
+                
+                {/* Action Buttons */}
+                <div className="border-t border-border-subtle p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleRunCode}
+                      disabled={isRunning}
+                      className="px-4 py-2 bg-neon-cyan text-black font-medium rounded-lg hover:bg-neon-cyan/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      <Play className="w-4 h-4" />
+                      {isRunning ? 'Running...' : 'Run Code'}
+                    </button>
+                    <button
+                      onClick={handleSubmit}
+                      disabled={submitting}
+                      className="px-4 py-2 bg-gradient-to-r from-neon-cyan to-neon-lavender text-black font-medium rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      <Send className="w-4 h-4" />
+                      {submitting ? 'Submitting...' : 'Submit Solution'}
+                    </button>
                   </div>
-
-                  {/* Output Panel */}
-                  <div className="bg-black/50 border border-border-subtle rounded-lg p-4">
-                    <div className="text-sm text-text-secondary mb-2">Output:</div>
-                    <pre className="text-sm font-mono text-green-400 whitespace-pre-wrap">
-                      {output || '> No output yet. Click "Run Code" to execute.'}
+                  
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleSaveDraft}
+                      disabled={saving}
+                      className="px-3 py-2 border border-border-subtle text-text-secondary rounded-lg hover:bg-bg-tertiary disabled:opacity-50 flex items-center gap-2"
+                    >
+                      <Save className="w-4 h-4" />
+                      {saving ? 'Saving...' : 'Save Draft'}
+                    </button>
+                    <button
+                      onClick={handleResetCode}
+                      className="px-3 py-2 border border-border-subtle text-text-secondary rounded-lg hover:bg-bg-tertiary"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Output Panel */}
+                <div className="border-t border-border-subtle">
+                  <div className="p-4">
+                    <h3 className="text-sm font-semibold text-text-primary mb-2">Output</h3>
+                    <pre className="bg-bg-tertiary border border-border-subtle rounded-lg p-4 font-mono text-sm text-text-primary whitespace-pre-wrap min-h-[100px] max-h-[300px] overflow-y-auto">
+                      {output || '> Output will appear here...'}
                     </pre>
                   </div>
                 </div>
@@ -360,50 +523,84 @@ Your function should:
 
             {activeTab === 'tests' && (
               <div className="h-full overflow-y-auto p-6">
-                <h2 className="text-2xl font-bold text-text-primary mb-6">Test Results</h2>
-                <div className="space-y-4">
-                  {exercise.testCases.map((test, idx) => (
-                    <div key={idx} className="border border-border-subtle rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${idx < 2 ? 'bg-green-500' : 'bg-red-500'}`} />
-                          <span className="font-medium text-text-primary">Test Case {idx + 1}</span>
+                <h2 className="text-2xl font-bold text-text-primary mb-6">Test Cases</h2>
+                
+                {testCases.length > 0 ? (
+                  <div className="space-y-4">
+                    {testCases.map((test, idx) => (
+                      <div key={test.id} className="border border-border-subtle rounded-lg p-4 bg-bg-tertiary">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="font-semibold text-text-primary">Test Case {idx + 1}</h3>
+                          <div className="text-sm text-text-secondary">
+                            {test.points} points
+                          </div>
                         </div>
-                        <span className="text-sm text-text-secondary">{idx < 2 ? 'Passed' : 'Failed'}</span>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="text-sm font-medium text-text-muted mb-1">Input</h4>
+                            <pre className="bg-bg-primary p-3 rounded border border-border-default text-sm font-mono text-text-primary overflow-x-auto">
+                              {test.input || '(none)'}
+                            </pre>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-text-muted mb-1">Expected Output</h4>
+                            <pre className="bg-bg-primary p-3 rounded border border-border-default text-sm font-mono text-green-400 overflow-x-auto">
+                              {test.expected_output}
+                            </pre>
+                          </div>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <div className="text-text-muted">Input</div>
-                          <div className="font-mono bg-bg-tertiary p-2 rounded">{test.input}</div>
-                        </div>
-                        <div>
-                          <div className="text-text-muted">Expected</div>
-                          <div className="font-mono bg-bg-tertiary p-2 rounded">{test.expectedOutput}</div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <CheckCircle2 className="w-12 h-12 text-text-muted mx-auto mb-4" />
+                    <p className="text-text-secondary">No test cases available for this exercise.</p>
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === 'hints' && (
               <div className="h-full overflow-y-auto p-6">
                 <h2 className="text-2xl font-bold text-text-primary mb-6">Hints</h2>
-                <div className="space-y-4">
-                  {exercise.hints.map((hint, idx) => (
-                    <div key={idx} className="border border-border-subtle rounded-lg p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 rounded-lg bg-gradient-to-r from-neon-cyan/20 to-neon-lavender/20">
-                          <Lightbulb className="w-5 h-5 text-neon-cyan" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-text-primary mb-1">Hint {idx + 1}</h3>
-                          <p className="text-text-secondary">{hint}</p>
+                
+                {exercise.hints && exercise.hints.length > 0 ? (
+                  <div className="space-y-6">
+                    {exercise.hints.map((hint, idx) => (
+                      <div key={idx} className="border border-neon-lavender/30 rounded-lg p-5 bg-gradient-to-r from-neon-lavender/10 to-transparent">
+                        <div className="flex items-start gap-3">
+                          <Lightbulb className="w-5 h-5 text-neon-lavender mt-0.5 flex-shrink-0" />
+                          <div>
+                            <h3 className="font-semibold text-text-primary mb-2">Hint #{idx + 1}</h3>
+                            <p className="text-text-secondary">{hint}</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Lightbulb className="w-12 h-12 text-text-muted mx-auto mb-4" />
+                    <p className="text-text-secondary">No hints available for this exercise.</p>
+                    <p className="text-sm text-text-muted mt-2">Try working through the problem step by step!</p>
+                  </div>
+                )}
+                
+                {/* Additional Resources */}
+                <div className="mt-8 pt-6 border-t border-border-subtle">
+                  <h3 className="font-semibold text-text-primary mb-4">Additional Resources</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <a href="#" className="block p-4 border border-border-subtle rounded-lg hover:bg-bg-tertiary transition">
+                      <h4 className="font-medium text-text-primary mb-2">Python Documentation</h4>
+                      <p className="text-sm text-text-secondary">Official Python language reference</p>
+                    </a>
+                    <a href="#" className="block p-4 border border-border-subtle rounded-lg hover:bg-bg-tertiary transition">
+                      <h4 className="font-medium text-text-primary mb-2">Stack Overflow</h4>
+                      <p className="text-sm text-text-secondary">Community Q&A for programming questions</p>
+                    </a>
+                  </div>
                 </div>
               </div>
             )}

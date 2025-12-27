@@ -1,76 +1,88 @@
 @import "tailwindcss";
 
-/* ===== READABLE VAPORWAVE DESIGN SYSTEM ===== */
+/* ===== SUNSET BOULEVARD - ART DECO DESIGN SYSTEM ===== */
 :root {
-  /* Softened Vaporwave Colors - Better Contrast */
-  --neon-pink: #FF6EC7;
-  --neon-cyan: #5DFDFF;
-  --neon-purple: #C77DFF;
-  --neon-lavender: #E0AAFF;
-  
-  /* Pastel Accents */
-  --pastel-pink: #FFB5E8;
-  --pastel-purple: #CDB4FF;
-  --pastel-blue: #A0D2FF;
-  --pastel-mint: #A0FFE6;
-  
-  /* Backgrounds - Better Readability */
-  --bg-primary: #0F0A1E;
-  --bg-secondary: #1A1230;
-  --bg-tertiary: #251A3D;
-  --bg-elevated: #2D2149;
-  
-  /* Text Colors - High Contrast */
-  --text-primary: #FFFFFF;
-  --text-secondary: #E0D0FF;
-  --text-tertiary: #B89FE8;
-  --text-muted: #8B7AA8;
-  
-  /* Gradients - Softer */
-  --gradient-sunset: linear-gradient(135deg, #FF6EC7 0%, #FFA07A 50%, #FFD700 100%);
-  --gradient-ocean: linear-gradient(135deg, #5DFDFF 0%, #7B68EE 100%);
-  --gradient-dream: linear-gradient(135deg, #FFB5E8 0%, #C77DFF 50%, #A0D2FF 100%);
-  --gradient-soft: linear-gradient(135deg, #E0AAFF 0%, #5DFDFF 100%);
-  
-  /* Borders */
-  --border-subtle: rgba(197, 125, 255, 0.2);
-  --border-default: rgba(197, 125, 255, 0.3);
-  --border-strong: rgba(197, 125, 255, 0.5);
-  
-  /* Glows - Softer */
-  --glow-pink: 0 0 15px rgba(255, 110, 199, 0.4);
-  --glow-cyan: 0 0 15px rgba(93, 253, 255, 0.4);
-  --glow-purple: 0 0 15px rgba(197, 125, 255, 0.4);
-  
-  /* Code Editor */
-  --code-bg: #1A1230;
-  --code-text: #FFFFFF;
-  --code-comment: #B89FE8;
-  --code-keyword: #FF6EC7;
-  --code-string: #5DFDFF;
-  --code-function: #FFB5E8;
-  --code-number: #A0FFE6;
-  
-  /* Typography - Readable */
-  --font-display: var(--font-outfit, 'Outfit', sans-serif);
+  /* Typography */
+  --font-heading: var(--font-outfit, 'Outfit', sans-serif);
   --font-body: var(--font-inter, 'Inter', sans-serif);
   --font-mono: var(--font-space-mono, 'Space Mono', monospace);
   
-  /* Spacing */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
+  /* Primary Colors */
+  --coral: #ff6b6b;
+  --sandy-gold: #f4a460;
+  --navy: #1a3a52;
+  --cream: #f5e6d3;
+  --medium-blue: #2c5f8d;
+  --muted-gold: #d4916f;
   
-  /* Border Radius - Slightly rounded for readability */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  /* Complementary Colors */
+  --mint: #90d7b4;
+  --teal: #4a9d9c;
+  --dusty-rose: #d4888f;
+  --champagne-gold: #f7dc6f;
+  --bronze: #cd7f32;
+  --copper: #b87333;
+  --aged-brass: #c9ae5d;
+  
+  /* Depth & Neutrals */
+  --burgundy: #8b3a3a;
+  --charcoal-navy: #0f1f2e;
+  --warm-taupe: #a88b78;
+  --white: #ffffff;
+  
+  /* Semantic Colors for UI */
+  --bg-primary: #f5e6d3;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #faf7f2;
+  --bg-elevated: #ffffff;
+  
+  --text-primary: #1a3a52;
+  --text-secondary: #2c5f8d;
+  --text-tertiary: #5a7a92;
+  --text-muted: #8b9fb0;
+  
+  --border-subtle: #e8d5c4;
+  --border-default: #d4916f;
+  --border-strong: #c9772f;
+  
+  /* Gradients */
+  --gradient-sunset: linear-gradient(135deg, #ff6b6b 0%, #f4a460 50%, #1a3a52 100%);
+  --gradient-warm: linear-gradient(90deg, #f4a460 0%, #f7dc6f 50%, #ff6b6b 100%);
+  --gradient-cool: linear-gradient(135deg, #1a3a52 0%, #2c5f8d 50%, #4a9d9c 100%);
+  --gradient-deco: linear-gradient(90deg, #cd7f32 0%, #f7dc6f 50%, #c9ae5d 100%);
+  
+  /* Code Editor - Dark theme for better contrast with code */
+  --code-bg: #0f1f2e;
+  --code-text: #f5e6d3;
+  --code-comment: #8b9fb0;
+  --code-keyword: #ff6b6b;
+  --code-string: #4a9d9c;
+  --code-function: #f7dc6f;
+  --code-number: #90d7b4;
+  
+  /* Spacing */
+  --space-xs: 5px;
+  --space-sm: 10px;
+  --space-md: 15px;
+  --space-lg: 20px;
+  --space-xl: 40px;
+  
+  /* Border Styles */
+  --border-width-thin: 2px;
+  --border-width-default: 3px;
+  --border-width-thick: 4px;
+  --border-width-accent: 6px;
+  
+  /* Border Radius - Minimal for Art Deco aesthetic */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  
+  /* Shadows - Hard, geometric (no blur) */
+  --shadow-sm: 4px 4px 0 rgba(0, 0, 0, 0.15);
+  --shadow-md: 6px 6px 0 rgba(0, 0, 0, 0.2);
+  --shadow-lg: 8px 8px 0 rgba(0, 0, 0, 0.3);
+  --shadow-xl: 12px 12px 0 rgba(0, 0, 0, 0.3);
   
   /* Transitions */
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
@@ -82,17 +94,24 @@
   --color-foreground: var(--text-primary);
   --font-sans: var(--font-body);
   --font-mono: var(--font-mono);
-  --font-display: var(--font-display);
+  --font-display: var(--font-heading);
   
-  /* Color palette */
-  --color-neon-pink: var(--neon-pink);
-  --color-neon-cyan: var(--neon-cyan);
-  --color-neon-purple: var(--neon-purple);
-  --color-neon-lavender: var(--neon-lavender);
-  --color-pastel-pink: var(--pastel-pink);
-  --color-pastel-purple: var(--pastel-purple);
-  --color-pastel-blue: var(--pastel-blue);
-  --color-pastel-mint: var(--pastel-mint);
+  /* Primary Color Palette */
+  --color-coral: var(--coral);
+  --color-sandy-gold: var(--sandy-gold);
+  --color-navy: var(--navy);
+  --color-cream: var(--cream);
+  --color-medium-blue: var(--medium-blue);
+  --color-muted-gold: var(--muted-gold);
+  
+  /* Complementary Colors */
+  --color-mint: var(--mint);
+  --color-teal: var(--teal);
+  --color-dusty-rose: var(--dusty-rose);
+  --color-champagne-gold: var(--champagne-gold);
+  --color-bronze: var(--bronze);
+  --color-copper: var(--copper);
+  --color-aged-brass: var(--aged-brass);
   
   /* Backgrounds */
   --color-bg-primary: var(--bg-primary);
@@ -116,42 +135,41 @@
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
   
+  /* Shadows */
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  
   /* Animation */
   --ease-smooth: var(--ease-smooth);
   --duration: var(--duration);
 }
 
-/* Subtle Grid Background */
+/* Subtle Art Deco Pattern Background */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   background: 
-    repeating-linear-gradient(0deg, rgba(197, 125, 255, 0.03) 0px, transparent 1px, transparent 50px),
-    repeating-linear-gradient(90deg, rgba(197, 125, 255, 0.03) 0px, transparent 1px, transparent 50px);
+    linear-gradient(90deg, rgba(212, 145, 111, 0.02) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(212, 145, 111, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
   pointer-events: none;
   z-index: -1;
 }
 
-/* Soft Ambient Glow */
+/* Subtle warm glow in corners */
 body::after {
   content: '';
   position: fixed;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: 
-    radial-gradient(circle at 20% 80%, rgba(255, 110, 199, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(93, 253, 255, 0.06) 0%, transparent 50%);
-  animation: gentleFloat 30s ease-in-out infinite;
+  top: 0;
+  right: 0;
+  width: 40%;
+  height: 40%;
+  background: radial-gradient(circle at top right, rgba(255, 107, 107, 0.03) 0%, transparent 60%);
   pointer-events: none;
   z-index: -1;
-}
-
-@keyframes gentleFloat {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(20px, -20px); }
 }
 
 body {
@@ -166,20 +184,21 @@ body {
   min-height: 100vh;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - Art Deco style */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--cream);
+  border-left: 2px solid var(--border-subtle);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--neon-lavender) 0%, var(--neon-cyan) 100%);
-  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, var(--coral) 0%, var(--sandy-gold) 100%);
+  border: 2px solid var(--muted-gold);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, var(--neon-pink) 0%, var(--neon-cyan) 100%);
+  background: linear-gradient(180deg, var(--sandy-gold) 0%, var(--coral) 100%);
 }

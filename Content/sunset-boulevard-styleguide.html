@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunset Boulevard - Complete Style Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #f4a460 50%, #1a3a52 100%);
+            padding: 40px 20px;
+            color: #1a3a52;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #f5e6d3;
+            padding: 40px;
+            border: 4px solid #d4916f;
+            box-shadow: 12px 12px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            color: #1a3a52;
+            text-shadow: 3px 3px 0 #ff6b6b;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #2c5f8d;
+            margin-bottom: 40px;
+            font-style: italic;
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ff6b6b;
+            border-bottom: 3px solid #d4916f;
+            padding-bottom: 10px;
+            margin: 40px 0 20px 0;
+        }
+
+        h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c5f8d;
+            margin: 25px 0 15px 0;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .color-card {
+            border: 3px solid #d4916f;
+            overflow: hidden;
+            box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .color-swatch {
+            height: 120px;
+            width: 100%;
+            border-bottom: 3px solid #d4916f;
+        }
+
+        .color-info {
+            padding: 15px;
+            background: white;
+        }
+
+        .color-name {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #1a3a52;
+            margin-bottom: 5px;
+        }
+
+        .color-hex {
+            font-family: 'Courier New', monospace;
+            color: #2c5f8d;
+            font-size: 0.95rem;
+            margin-bottom: 3px;
+        }
+
+        .color-rgb {
+            font-family: 'Courier New', monospace;
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .color-usage {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: #555;
+            font-style: italic;
+        }
+
+        .typography-example {
+            background: white;
+            padding: 20px;
+            border: 3px solid #d4916f;
+            margin: 15px 0;
+        }
+
+        @media (max-width: 768px) {
+            .usage-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .component-card {
+            background: white;
+            padding: 20px;
+            border: 3px solid #d4916f;
+            box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        /* Example Buttons */
+        .btn-primary {
+            background: #ff6b6b;
+            color: white;
+            padding: 12px 24px;
+            border: 3px solid #d4916f;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: #4a9d9c;
+            color: white;
+            padding: 12px 24px;
+            border: 3px solid #2c5f8d;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-accent {
+            background: #f7dc6f;
+            color: #1a3a52;
+            padding: 12px 24px;
+            border: 3px solid #c9ae5d;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.2s;
+        }
+
+        .btn-accent:hover {
+            transform: translateY(-2px);
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .component-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .component-card {
+            background: white;
+            padding: 20px;
+            border: 3px solid #d4916f;
+            box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        /* Example Cards */
+        .example-card {
+            background: #f5e6d3;
+            border-left: 6px solid #ff6b6b;
+            padding: 20px;
+            margin: 10px 0;
+        }
+
+        .example-card-secondary {
+            background: #f5e6d3;
+            border-left: 6px solid #4a9d9c;
+            padding: 20px;
+            margin: 10px 0;
+        }
+
+        /* Alert Styles */
+        .alert-success {
+            background: #e8f8f5;
+            border: 3px solid #90d7b4;
+            padding: 15px;
+            margin: 10px 0;
+            color: #1a3a52;
+        }
+
+        .alert-warning {
+            background: #fff9e6;
+            border: 3px solid #f7dc6f;
+            padding: 15px;
+            margin: 10px 0;
+            color: #1a3a52;
+        }
+
+        .alert-error {
+            background: #ffe6e6;
+            border: 3px solid #ff6b6b;
+            padding: 15px;
+            margin: 10px 0;
+            color: #1a3a52;
+        }
+
+        .usage-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .usage-item {
+            background: white;
+            padding: 15px;
+            border: 2px solid #d4916f;
+        }
+
+        .do {
+            border-left: 5px solid #90d7b4;
+        }
+
+        .dont {
+            border-left: 5px solid #ff6b6b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+
+        th {
+            background: #1a3a52;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            border: 2px solid #d4916f;
+        }
+
+        td {
+            padding: 12px;
+            border: 2px solid #d4916f;
+        }
+
+        .gradient-showcase {
+            height: 100px;
+            margin: 15px 0;
+            border: 3px solid #d4916f;
+        }
+
+        .spacing-example {
+            background: white;
+            padding: 20px;
+            border: 3px solid #d4916f;
+            margin: 15px 0;
+        }
+
+        .spacing-box {
+            background: #ff6b6b;
+            color: white;
+            padding: 20px;
+            margin: 10px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .usage-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SUNSET BOULEVARD</h1>
+        <div class="subtitle">Art Deco Vaporwave Style Guide</div>
+
+        <!-- BRAND OVERVIEW -->
+        <h2>🎨 Brand Overview</h2>
+        <p style="line-height: 1.8; margin: 15px 0;">
+            The Sunset Boulevard aesthetic merges 1920s-30s Art Deco luxury with digital vaporwave nostalgia. 
+            Inspired by vintage Hollywood glamour, neon-lit theater marquees, and golden hour over the boulevard, 
+            this palette evokes retro sophistication with a modern, slightly surreal edge.
+        </p>
+
+        <!-- PRIMARY COLORS -->
+        <h2>🌅 Primary Colors</h2>
+        <div class="color-grid">
+            <div class="color-card">
+                <div class="color-swatch" style="background: #ff6b6b;"></div>
+                <div class="color-info">
+                    <div class="color-name">Deep Coral</div>
+                    <div class="color-hex">#ff6b6b</div>
+                    <div class="color-rgb">RGB(255, 107, 107)</div>
+                    <div class="color-usage">Primary accent, CTA buttons, highlights</div>
+                </div>
+            </div>
+
+            <div class="color-card">
+                <div class="color-swatch" style="background: #f4a460;"></div>
+                <div class="color-info">
+                    <div class="color-name">Sandy Gold</div>
+                    <div class="color-hex">#f4a460</div>
+                    <div class="color-rgb">RGB(244, 164, 96)</div>
+                    <div class="color-usage">Secondary accent, warm highlights</div>
+                </div>
+            </div>
+
+            <div class="color-card">
+                <div class="color-swatch" style="background: #1a3a52;"></div>
+                <div class="color-info">
+                    <div class="color-name">Navy Blue</div>
+                    <div class="color-hex">#1a3a52</div>
+                    <div class="color-rgb">RGB(26, 58, 82)</div>
+                    <div class="color-usage">Primary text, headers, dark elements</div>
+                </div>
+            </div>
+
+            <div class="color-card">
+                <div class="color-swatch" style="background: #f5e6d3;"></div>
+                <div class="color-info">
+                    <div class="color-name">Cream</div>
+                    <div class="color-hex">#f5e6d3</div>
+                    <div class="color-rgb">RGB(245, 230, 211)</div>
+                    <div class="color-usage">Backgrounds, cards, light surfaces</div>
+                </div>
+            </div>
+
+            <div class="color-card">
+                <div class="color-swatch" style="background: #2c5f8d;"></div>
+                <div class="color-info">
+                    <div class="color-name">Medium Blue</div>
+                    <div class="color-hex">#2c5f8d</div>
+                    <div class="color-rgb">RGB(44, 95, 141)</div>
+                    <div class="color-usage">Secondary text, links, subheadings</div>
+                </div>
+            </div>
+
+            <div class="color-card">
+                <div class="color-swatch" style="background: #d4916f;"></div>
+                <div class="color-info">
+                    <div class="color-name">Muted Gold</div>
+                    <div class="color-hex">#d4916f</div>
+                    <div class="color-rgb">RGB(212, 145, 111)</div>
+                    <div class="color-usage">Borders, dividers, subtle accents</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPLEMENTARY COLORS -->
+        <h2>✨ Complementary & Accent Colors</h2>
+        
+        <h3>Cool Accents</h3>
+        <div class="color-grid">
+            <div class="color-card">
+                <div class="color-swatch" style="background: #90d7b4;"></div>
+                <div class="color-info">
+                    <div class="color-name">Mint Green</div>
+                    <div class="color-hex">#90d7b4</div>
+                    <div class="color-rgb">RGB(144, 215, 180)</div>
+                    <div class="color-usage">Success states, positive feedback, Art Deco contrast</div>
+                </div>
+            </div>
+
+            <div class="color-card">
+                <div class="color-swatch" style="background: #4a9d9c;"></div>
+                <div class="color-info">
+                    <div class="color-name">Soft Teal</div>
+                    <div class="color-hex">#4a9d9c</div>
+                    <div class="color-rgb">RGB(74, 157, 156)</div>
+                    <div class="color-usage">Secondary buttons, links, vintage marquee vibes</div>
+                </div>
+            </div>
+
+            <div class="color-card">
+                <div class="color-swatch" style="background: #d4888f;"></div>
+                <div class="color-info">
+                    <div class="color-name">Dusty Rose</div>
+                    <div class="color-hex">#d4888f</div>
+                    <div class="color-rgb">RGB(212, 136, 143)</div>
+                    <div class="color-usage">Hover states, alternative accent, soft highlights</div>
+                </div>
+            </div>
+        </div>
+
+        <h3>Metallic & Luxury Accents</h3>
+        <div class="color-grid">
+            <div class="color-card">
+                <div class="color-swatch" style="background: #f7dc6f;"></div>
+                <div class="color-info">
+                    <div class="color-name">Champagne Gold</div>
+                    <div class="color-hex">#f7dc6f</div>
+                    <div class="color-rgb">RGB(247, 220, 111)</div>
+                    <div class="color-usage">Premium features, highlights, badges, metallics</div>
+                </div>
+            </div>
+
+            <div class="color-card">
+                <div class="color-swatch" style="background: #cd7f32;"></div>
+                <div class="color-info">
+                    <div class="color-name">Bronze</div>
+                    <div class="color-hex">#cd7f32</div>
+                    <div class="color-rgb">RGB(205, 127, 50)</div>
+                    <div class="color-usage">Art Deco metallic accents, awards, badges</div>
+                </div>
+            </div>
+
+            <div class="color-card">
+                <div class="color-swatch" style="background: #b87333;"></div>
+                <div class="color-info">
+                    <div class="color-name">Copper</div>
+                    <div class="color-hex">#b87333</div>
+                    <div class="color-rgb">RGB(184, 115, 51)</div>
+                    <div class="color-usage">Warm metallic option, luxury elements</div>
+                </div>
+            </div>
+
+            <div class="color-card">
+                <div class="color-swatch" style="background: #c9ae5d;"></div>
+                <div class="color-info">
+                    <div class="color-name">Aged Brass</div>
+                    <div class="color-hex">#c9ae5d</div>
+                    <div class="color-rgb">RGB(201, 174, 93)</div>
+                    <div class="color-usage">Vintage metallic, borders, subtle luxury</div>
+                </div>
+            </div>
+        </div>
+
+        <h3>Depth & Neutrals</h3>
+        <div class="color-grid">
+            <div class="color-card">
+                <div class="color-swatch" style="background: #8b3a3a;"></div>
+                <div class="color-info">
+                    <div class="color-name">Deep Burgundy</div>
+                    <div class="color-hex">#8b3a3a</div>
+                    <div class="color-rgb">RGB(139, 58, 58)</div>
+                    <div class="color-usage">Shadows, depth, darker red alternative</div>
+                </div>
+            </div>
+
+            <div class="color-card">
+                <div class="color-swatch" style="background: #0f1f2e;"></div>
+                <div class="color-info">
+                    <div class="color-name">Charcoal Navy</div>
+                    <div class="color-hex">#0f1f2e</div>
+                    <div class="color-rgb">RGB(15, 31, 46)</div>
+                    <div class="color-usage">Deep shadows, code blocks, dark text</div>
+                </div>
+            </div>
+
+            <div class="color-card">
+                <div class="color-swatch" style="background: #a88b78;"></div>
+                <div class="color-info">
+                    <div class="color-name">Warm Taupe</div>
+                    <div class="color-hex">#a88b78</div>
+                    <div class="color-rgb">RGB(168, 139, 120)</div>
+                    <div class="color-usage">Neutral backgrounds, disabled states, subtle elements</div>
+                </div>
+            </div>
+
+            <div class="color-card">
+                <div class="color-swatch" style="background: #ffffff;"></div>
+                <div class="color-info">
+                    <div class="color-name">Pure White</div>
+                    <div class="color-hex">#ffffff</div>
+                    <div class="color-rgb">RGB(255, 255, 255)</div>
+                    <div class="color-usage">High contrast text, clean backgrounds, cards</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRADIENTS -->
+        <h2>🌄 Gradient Palettes</h2>
+        
+        <h3>Primary Sunset Gradient</h3>
+        <div class="gradient-showcase" style="background: linear-gradient(135deg, #ff6b6b 0%, #f4a460 50%, #1a3a52 100%);"></div>
+        <p><code>background: linear-gradient(135deg, #ff6b6b 0%, #f4a460 50%, #1a3a52 100%);</code></p>
+
+        <h3>Warm Glow Gradient</h3>
+        <div class="gradient-showcase" style="background: linear-gradient(90deg, #f4a460 0%, #f7dc6f 50%, #ff6b6b 100%);"></div>
+        <p><code>background: linear-gradient(90deg, #f4a460 0%, #f7dc6f 50%, #ff6b6b 100%);</code></p>
+
+        <h3>Cool Evening Gradient</h3>
+        <div class="gradient-showcase" style="background: linear-gradient(135deg, #1a3a52 0%, #2c5f8d 50%, #4a9d9c 100%);"></div>
+        <p><code>background: linear-gradient(135deg, #1a3a52 0%, #2c5f8d 50%, #4a9d9c 100%);</code></p>
+
+        <h3>Art Deco Accent Gradient</h3>
+        <div class="gradient-showcase" style="background: linear-gradient(90deg, #cd7f32 0%, #f7dc6f 50%, #c9ae5d 100%);"></div>
+        <p><code>background: linear-gradient(90deg, #cd7f32 0%, #f7dc6f 50%, #c9ae5d 100%);</code></p>
+
+        <!-- TYPOGRAPHY -->
+        <h2>📝 Typography</h2>
+        
+        <div class="typography-example">
+            <h3 style="font-family: 'Outfit', sans-serif;">Headings: Outfit (Sans-serif)</h3>
+            <p style="font-family: 'Outfit', sans-serif; font-size: 2.5rem; font-weight: 900; margin: 10px 0;">The Quick Brown Fox Jumps</p>
+            <p style="font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 700; margin: 10px 0;">ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
+            <p style="font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 400; margin: 10px 0;">abcdefghijklmnopqrstuvwxyz</p>
+            <p style="font-family: 'Outfit', sans-serif; font-size: 1rem; margin: 10px 0;">0123456789 !@#$%^&*()</p>
+        </div>
+
+        <div class="typography-example" style="margin-top: 20px;">
+            <h3 style="font-family: 'Outfit', sans-serif;">Body Text: Inter (Sans-serif)</h3>
+            <p style="font-family: 'Inter', sans-serif; font-size: 1.2rem; margin: 10px 0;">The Quick Brown Fox Jumps Over The Lazy Dog</p>
+            <p style="font-family: 'Inter', sans-serif; font-size: 1rem; margin: 10px 0;">ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
+            <p style="font-family: 'Inter', sans-serif; font-size: 1rem; margin: 10px 0;">abcdefghijklmnopqrstuvwxyz</p>
+            <p style="font-family: 'Inter', sans-serif; font-size: 1rem; margin: 10px 0;">0123456789 !@#$%^&*()</p>
+            <p style="font-family: 'Inter', sans-serif; font-size: 1rem; line-height: 1.6; margin-top: 15px;">
+                Inter provides excellent readability for body text with its clear letterforms and generous spacing. 
+                Perfect for paragraphs, descriptions, and longer content blocks.
+            </p>
+        </div>
+
+        <h3>Font Sizing Scale</h3>
+        <table>
+            <tr>
+                <th>Element</th>
+                <th>Font Family</th>
+                <th>Size</th>
+                <th>Weight</th>
+                <th>Usage</th>
+            </tr>
+            <tr>
+                <td>H1 / Hero</td>
+                <td>Outfit</td>
+                <td>3rem (48px)</td>
+                <td>900 (Black)</td>
+                <td>Page titles, hero headings</td>
+            </tr>
+            <tr>
+                <td>H2 / Section</td>
+                <td>Outfit</td>
+                <td>2rem (32px)</td>
+                <td>800 (Extra Bold)</td>
+                <td>Section headers</td>
+            </tr>
+            <tr>
+                <td>H3 / Subsection</td>
+                <td>Outfit</td>
+                <td>1.4rem (22px)</td>
+                <td>700 (Bold)</td>
+                <td>Subsection titles</td>
+            </tr>
+            <tr>
+                <td>Body / Paragraph</td>
+                <td>Inter</td>
+                <td>1rem (16px)</td>
+                <td>400 (Regular)</td>
+                <td>Body text, descriptions</td>
+            </tr>
+            <tr>
+                <td>Body Bold</td>
+                <td>Inter</td>
+                <td>1rem (16px)</td>
+                <td>600 (Semi-Bold)</td>
+                <td>Emphasized body text</td>
+            </tr>
+            <tr>
+                <td>Small / Caption</td>
+                <td>Inter</td>
+                <td>0.875rem (14px)</td>
+                <td>400 (Regular)</td>
+                <td>Captions, metadata</td>
+            </tr>
+            <tr>
+                <td>Buttons</td>
+                <td>Outfit</td>
+                <td>1rem (16px)</td>
+                <td>700 (Bold)</td>
+                <td>All button text</td>
+            </tr>
+            <tr>
+                <td>Tiny / Labels</td>
+                <td>Inter</td>
+                <td>0.75rem (12px)</td>
+                <td>500 (Medium)</td>
+                <td>Labels, tags, badges</td>
+            </tr>
+        </table>
+
+        <!-- COMPONENTS -->
+        <h2>🎯 UI Components</h2>
+
+        <h3>Buttons</h3>
+        <div class="component-card">
+            <button class="btn-primary">Primary Button</button>
+            <button class="btn-secondary">Secondary Button</button>
+            <button class="btn-accent">Accent Button</button>
+            <p style="margin-top: 15px; font-size: 0.9rem;">
+                <strong>Guidelines:</strong> 3px solid borders, bold text, subtle hover effects with vertical translation and shadow
+            </p>
+        </div>
+
+        <h3>Alert Boxes</h3>
+        <div class="component-card">
+            <div class="alert-success">
+                <strong>✓ Success!</strong> Your code executed successfully.
+            </div>
+            <div class="alert-warning">
+                <strong>⚠ Warning:</strong> This action cannot be undone.
+            </div>
+            <div class="alert-error">
+                <strong>✗ Error:</strong> Connection failed. Please try again.
+            </div>
+        </div>
+
+        <h3>Content Cards</h3>
+        <div class="component-card">
+            <div class="example-card">
+                <strong>Primary Card</strong><br>
+                Left border accent with coral, cream background
+            </div>
+            <div class="example-card-secondary">
+                <strong>Secondary Card</strong><br>
+                Left border accent with teal, cream background
+            </div>
+        </div>
+
+        <!-- SPACING -->
+        <h2>📐 Spacing & Layout</h2>
+        
+        <h3>Spacing Scale</h3>
+        <table>
+            <tr>
+                <th>Size</th>
+                <th>Value</th>
+                <th>Usage</th>
+            </tr>
+            <tr>
+                <td>XS</td>
+                <td>5px</td>
+                <td>Tight spacing, inline elements</td>
+            </tr>
+            <tr>
+                <td>SM</td>
+                <td>10px</td>
+                <td>Small gaps, button padding</td>
+            </tr>
+            <tr>
+                <td>MD</td>
+                <td>15px</td>
+                <td>Default spacing, card padding</td>
+            </tr>
+            <tr>
+                <td>LG</td>
+                <td>20px</td>
+                <td>Section spacing, container padding</td>
+            </tr>
+            <tr>
+                <td>XL</td>
+                <td>40px</td>
+                <td>Major section breaks, page margins</td>
+            </tr>
+        </table>
+
+        <h3>Border Styles</h3>
+        <table>
+            <tr>
+                <th>Element</th>
+                <th>Border Width</th>
+                <th>Color</th>
+            </tr>
+            <tr>
+                <td>Primary Containers</td>
+                <td>3-4px solid</td>
+                <td>#d4916f (Muted Gold)</td>
+            </tr>
+            <tr>
+                <td>Accent Borders</td>
+                <td>4-6px solid</td>
+                <td>#ff6b6b (Deep Coral)</td>
+            </tr>
+            <tr>
+                <td>Subtle Dividers</td>
+                <td>2px solid</td>
+                <td>#d4916f (Muted Gold)</td>
+            </tr>
+        </table>
+
+        <h3>Shadow Styles</h3>
+        <div class="spacing-example">
+            <div class="spacing-box" style="box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);">
+                Standard Shadow: 6px 6px 0 rgba(0, 0, 0, 0.2)
+            </div>
+            <div class="spacing-box" style="box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.3);">
+                Elevated Shadow: 8px 8px 0 rgba(0, 0, 0, 0.3)
+            </div>
+            <div class="spacing-box" style="box-shadow: 12px 12px 0 rgba(0, 0, 0, 0.3);">
+                Hero Shadow: 12px 12px 0 rgba(0, 0, 0, 0.3)
+            </div>
+        </div>
+
+        <!-- COLOR USAGE -->
+        <h2>💡 Color Usage Guidelines</h2>
+
+        <div class="usage-grid">
+            <div class="usage-item do">
+                <strong>✓ DO</strong><br>
+                • Use coral (#ff6b6b) sparingly for primary CTAs<br>
+                • Pair warm tones (coral, gold) with cool accents (teal, mint)<br>
+                • Use navy for text on light backgrounds<br>
+                • Leverage metallic golds for premium features
+            </div>
+
+            <div class="usage-item dont">
+                <strong>✗ DON'T</strong><br>
+                • Overuse bright coral - it loses impact<br>
+                • Use navy text on dark backgrounds<br>
+                • Mix too many metallics in one view<br>
+                • Ignore contrast ratios for accessibility
+            </div>
+
+            <div class="usage-item do">
+                <strong>✓ DO</strong><br>
+                • Use gradients for backgrounds and headers<br>
+                • Add texture overlays for Art Deco feel<br>
+                • Use cream (#f5e6d3) as primary background<br>
+                • Apply consistent border styles (3px solid)
+            </div>
+
+            <div class="usage-item dont">
+                <strong>✗ DON'T</strong><br>
+                • Use gradients on small UI elements<br>
+                • Mix competing gradients<br>
+                • Use pure white everywhere - cream is warmer<br>
+                • Make borders too thin (<2px)
+            </div>
+        </div>
+
+        <!-- ACCESSIBILITY -->
+        <h2>♿ Accessibility Guidelines</h2>
+
+        <h3>Color Contrast Ratios</h3>
+        <table>
+            <tr>
+                <th>Combination</th>
+                <th>Ratio</th>
+                <th>WCAG Level</th>
+                <th>Usage</th>
+            </tr>
+            <tr>
+                <td>Navy (#1a3a52) on Cream (#f5e6d3)</td>
+                <td>9.8:1</td>
+                <td>AAA</td>
+                <td>✓ Body text</td>
+            </tr>
+            <tr>
+                <td>White (#ffffff) on Coral (#ff6b6b)</td>
+                <td>4.5:1</td>
+                <td>AA</td>
+                <td>✓ Buttons</td>
+            </tr>
+            <tr>
+                <td>Navy (#1a3a52) on Champagne Gold (#f7dc6f)</td>
+                <td>7.2:1</td>
+                <td>AAA</td>
+                <td>✓ Accent text</td>
+            </tr>
+            <tr>
+                <td>White on Teal (#4a9d9c)</td>
+                <td>3.8:1</td>
+                <td>AA Large</td>
+                <td>⚠ Large text only</td>
+            </tr>
+        </table>
+
+        <p style="margin: 20px 0; line-height: 1.6;">
+            <strong>Key Recommendations:</strong><br>
+            • Always test color combinations before deployment<br>
+            • Use Navy (#1a3a52) or Charcoal Navy (#0f1f2e) for primary text<br>
+            • Ensure buttons maintain 4.5:1 contrast minimum<br>
+            • Don't rely solely on color to convey information
+        </p>
+
+        <!-- BRAND VOICE -->
+        <h2>🎭 Brand Voice & Aesthetic</h2>
+        
+        <div class="component-card">
+            <h3>Visual Characteristics</h3>
+            <ul style="line-height: 1.8; margin-left: 20px;">
+                <li><strong>Retro Luxury:</strong> Art Deco elegance meets digital nostalgia</li>
+                <li><strong>Warm & Inviting:</strong> Golden hour color temperature</li>
+                <li><strong>Structured Chaos:</strong> Geometric shapes with vaporwave surrealism</li>
+                <li><strong>Vintage Digital:</strong> Old Hollywood meets early computing</li>
+            </ul>
+        </div>
+
+        <div class="component-card" style="margin-top: 20px;">
+            <h3>Design Principles</h3>
+            <ul style="line-height: 1.8; margin-left: 20px;">
+                <li><strong>Bold Borders:</strong> 3-4px solid borders define all major elements</li>
+                <li><strong>Offset Shadows:</strong> Hard, geometric drop shadows (no blur)</li>
+                <li><strong>Metallic Accents:</strong> Gold, bronze, copper for premium feel</li>
+                <li><strong>Gradient Backgrounds:</strong> Sunset-inspired color transitions</li>
+                <li><strong>Modern Typography:</strong> Outfit for headings (bold, geometric), Inter for body (clean, readable)</li>
+            </ul>
+        </div>
+
+        <!-- QUICK REFERENCE -->
+        <h2>⚡ Quick Reference</h2>
+
+        <div class="component-card">
+            <h3>Core Palette (Copy & Paste)</h3>
+            <pre style="background: #0f1f2e; color: #90d7b4; padding: 20px; overflow-x: auto; border: 3px solid #d4916f; font-family: 'Courier New', monospace;">
+/* Typography */
+--font-heading: 'Outfit', sans-serif;
+--font-body: 'Inter', sans-serif;
+
+/* Primary Colors */
+--coral: #ff6b6b;
+--sandy-gold: #f4a460;
+--navy: #1a3a52;
+--cream: #f5e6d3;
+--medium-blue: #2c5f8d;
+--muted-gold: #d4916f;
+
+/* Complementary Colors */
+--mint: #90d7b4;
+--teal: #4a9d9c;
+--dusty-rose: #d4888f;
+--champagne-gold: #f7dc6f;
+--bronze: #cd7f32;
+--copper: #b87333;
+--aged-brass: #c9ae5d;
+
+/* Depth & Neutrals */
+--burgundy: #8b3a3a;
+--charcoal-navy: #0f1f2e;
+--warm-taupe: #a88b78;
+--white: #ffffff;
+
+/* Gradients */
+--gradient-sunset: linear-gradient(135deg, #ff6b6b 0%, #f4a460 50%, #1a3a52 100%);
+--gradient-warm: linear-gradient(90deg, #f4a460 0%, #f7dc6f 50%, #ff6b6b 100%);
+--gradient-cool: linear-gradient(135deg, #1a3a52 0%, #2c5f8d 50%, #4a9d9c 100%);
+--gradient-deco: linear-gradient(90deg, #cd7f32 0%, #f7dc6f 50%, #c9ae5d 100%);
+            </pre>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding: 20px; border-top: 3px solid #d4916f;">
+            <p style="font-size: 1.2rem; color: #2c5f8d;">
+                <strong>SUNSET BOULEVARD</strong><br>
+                Where Art Deco Meets Vaporwave
+            </p>
+        </div>
+    </div>
+</body>
+</html>

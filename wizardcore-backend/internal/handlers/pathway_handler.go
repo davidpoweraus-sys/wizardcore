@@ -25,9 +25,42 @@ func NewPathwayHandler(pathwayService *services.PathwayService, userService *ser
 }
 
 func (h *PathwayHandler) GetAllPathways(c *gin.Context) {
-	pathways, err := h.pathwayService.GetAllPathways()
+	supabaseUserID, ok := middleware.GetSupabaseUserID(c)
+	if !ok {
+		// If user is not authenticated, return pathways without enrollment status
+		pathways, err := h.pathwayService.GetAllPathways()
+		if err != nil {
+			h.logger.Error("Failed to fetch pathways", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch pathways"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"pathways": pathways})
+		return
+	}
+
+	// Get internal user ID
+	user, err := h.userService.GetUserBySupabaseUserID(supabaseUserID)
 	if err != nil {
-		h.logger.Error("Failed to fetch pathways", zap.Error(err))
+		h.logger.Error("Failed to fetch user", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch pathways"})
+		return
+	}
+	if user == nil {
+		// User not found in our database, return pathways without enrollment status
+		pathways, err := h.pathwayService.GetAllPathways()
+		if err != nil {
+			h.logger.Error("Failed to fetch pathways", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch pathways"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"pathways": pathways})
+		return
+	}
+
+	// Get pathways with enrollment status
+	pathways, err := h.pathwayService.GetAllPathwaysWithEnrollment(user.ID)
+	if err != nil {
+		h.logger.Error("Failed to fetch pathways with enrollment", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch pathways"})
 		return
 	}

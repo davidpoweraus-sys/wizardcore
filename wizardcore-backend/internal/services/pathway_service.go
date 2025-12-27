@@ -22,6 +22,10 @@ func (s *PathwayService) GetAllPathways() ([]models.Pathway, error) {
 	return s.pathwayRepo.FindAll()
 }
 
+func (s *PathwayService) GetAllPathwaysWithEnrollment(userID uuid.UUID) ([]models.PathwayWithEnrollment, error) {
+	return s.pathwayRepo.FindAllWithEnrollment(userID)
+}
+
 func (s *PathwayService) GetPathwayByID(id uuid.UUID) (*models.Pathway, error) {
 	return s.pathwayRepo.FindByID(id)
 }
@@ -64,14 +68,14 @@ func (s *PathwayService) EnrollUser(userID, pathwayID uuid.UUID) error {
 
 	// Create enrollment with default values
 	enrollment := &models.UserPathwayEnrollment{
-		UserID:              userID,
-		PathwayID:           pathwayID,
-		ProgressPercentage:  0,
-		CompletedModules:    0,
-		XPEarned:            0,
-		StreakDays:          0,
-		LastActivityAt:      nil,
-		CompletedAt:         nil,
+		UserID:             userID,
+		PathwayID:          pathwayID,
+		ProgressPercentage: 0,
+		CompletedModules:   0,
+		XPEarned:           0,
+		StreakDays:         0,
+		LastActivityAt:     nil,
+		CompletedAt:        nil,
 	}
 	return s.pathwayRepo.CreateEnrollment(enrollment)
 }

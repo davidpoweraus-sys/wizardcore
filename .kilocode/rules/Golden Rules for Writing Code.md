@@ -80,7 +80,19 @@ Before writing ANY test, answer these:
 - [ ] Does my test have code that production doesn't? (Answer must be NO, except cleanup)
 
 
-**5. **KEEP THIS DOCUMENT UPDATED**
+**Rules for Implementation**
+
+**RULE 1** "Write COMPLETE, production-ready code. Do NOT use TODO comments, placeholders, or stubbed functions. All functionality must be fully implemented. If database operations are needed, include proper error handling and real implementation."
+
+**RULE 2** 
+"For any features mentioned, provide FULL implementations including:
+- All necessary imports
+- Complete function bodies
+- Error handling
+- Database connections with actual queries
+- Input validation
+- Return values with proper data structures
+No stubs or 'implement later' comments allowed."
 
 ---
 📊 SUMMARY: The Meta-Rule
