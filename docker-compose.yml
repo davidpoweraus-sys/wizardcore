@@ -68,7 +68,13 @@ services:
         
         psql -h supabase-postgres -p 5432 -U $${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d $${SUPABASE_POSTGRES_DB:-supabase_auth} <<'EOSQL'
         CREATE SCHEMA IF NOT EXISTS auth;
-        DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'postgres') THEN CREATE ROLE postgres WITH SUPERUSER LOGIN; END IF; END \$\$;
+        
+        DO \$\$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'postgres') THEN
+                CREATE ROLE postgres WITH SUPERUSER LOGIN PASSWORD 'postgres';
+            END IF;
+        END \$\$;
         DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'factor_type' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.factor_type AS ENUM ('totp', 'webauthn', 'phone'); END IF; END \$\$;
         DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'factor_status' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.factor_status AS ENUM ('unverified', 'verified'); END IF; END \$\$;
         DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'aal_level' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.aal_level AS ENUM ('aal1', 'aal2', 'aal3'); END IF; END \$\$;
