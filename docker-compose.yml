@@ -39,58 +39,50 @@ services:
       PGUSER: ${SUPABASE_POSTGRES_USER:-supabase_auth_admin}
       PGPASSWORD: ${SUPABASE_POSTGRES_PASSWORD:-password}
       PGDATABASE: ${SUPABASE_POSTGRES_DB:-supabase_auth}
-      INIT_COMPLETE: "false"
     volumes:
       - init_status:/status
+    entrypoint: ["/bin/sh", "-c"]
     command:
-      - sh
-      - -c
       - |
-        until pg_isready -h supabase-postgres -p 5432 -U $${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d $${SUPABASE_POSTGRES_DB:-supabase_auth}; do
+        until pg_isready -h supabase-postgres -p 5432; do
           echo 'Waiting for database...'
           sleep 2
         done
-        echo 'Database ready. Running initialization scripts...'
+        echo 'Database ready. Creating postgres role first...'
         
-        psql -h supabase-postgres -p 5432 -U $${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d $${SUPABASE_POSTGRES_DB:-supabase_auth} <<'EOSQL'
-        DO $$
-        BEGIN
-            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'supabase_auth_admin') THEN
-                CREATE ROLE supabase_auth_admin WITH LOGIN PASSWORD '0yvhLSetDKV4BlFOH6YeM5LCBe2jmV2B';
-            ELSE
-                ALTER ROLE supabase_auth_admin WITH LOGIN PASSWORD '0yvhLSetDKV4BlFOH6YeM5LCBe2jmV2B';
-            END IF;
-            ALTER ROLE supabase_auth_admin WITH SUPERUSER CREATEDB CREATEROLE;
-        END $$;
-        GRANT ALL PRIVILEGES ON DATABASE supabase_auth TO supabase_auth_admin;
-        EOSQL
-        echo 'User creation completed.'
+        psql -h supabase-postgres -p 5432 -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'postgres') THEN CREATE ROLE postgres WITH SUPERUSER LOGIN PASSWORD 'postgres'; END IF; END \$\$;" || echo "postgres role creation failed, may already exist"
         
-        psql -h supabase-postgres -p 5432 -U $${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d $${SUPABASE_POSTGRES_DB:-supabase_auth} <<'EOSQL'
-        CREATE SCHEMA IF NOT EXISTS auth;
+        echo 'Creating/updating supabase_auth_admin user...'
+        psql -h supabase-postgres -p 5432 -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'supabase_auth_admin') THEN CREATE ROLE supabase_auth_admin WITH LOGIN PASSWORD '0yvhLSetDKV4BlFOH6YeM5LCBe2jmV2B'; ELSE ALTER ROLE supabase_auth_admin WITH LOGIN PASSWORD '0yvhLSetDKV4BlFOH6YeM5LCBe2jmV2B'; END IF; ALTER ROLE supabase_auth_admin WITH SUPERUSER CREATEDB CREATEROLE; END \$\$;"
         
-        DO $$
-        BEGIN
-            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'postgres') THEN
-                CREATE ROLE postgres WITH SUPERUSER LOGIN PASSWORD 'postgres';
-            END IF;
-        END $$;
-        DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'factor_type' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.factor_type AS ENUM ('totp', 'webauthn', 'phone'); END IF; END $$;
-        DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'factor_status' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.factor_status AS ENUM ('unverified', 'verified'); END IF; END $$;
-        DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'aal_level' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.aal_level AS ENUM ('aal1', 'aal2', 'aal3'); END IF; END $$;
-        DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'code_challenge_method' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.code_challenge_method AS ENUM ('S256', 'plain'); END IF; END $$;
-        DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'oauth_authorization_status' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.oauth_authorization_status AS ENUM ('pending', 'approved', 'denied', 'expired'); END IF; END $$;
-        DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'oauth_response_type' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.oauth_response_type AS ENUM ('code'); END IF; END $$;
-        GRANT ALL ON SCHEMA auth TO supabase_auth_admin;
-        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA auth TO supabase_auth_admin;
-        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA auth TO supabase_auth_admin;
-        GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA auth TO supabase_auth_admin;
-        ALTER ROLE supabase_auth_admin SET search_path TO auth, public;
-        EOSQL
-        echo 'Auth schema initialized.'
+        echo 'Granting database privileges...'
+        psql -h supabase-postgres -p 5432 -c "GRANT ALL PRIVILEGES ON DATABASE supabase_auth TO supabase_auth_admin;"
+        
+        echo 'Creating auth schema...'
+        psql -h supabase-postgres -p 5432 -c "CREATE SCHEMA IF NOT EXISTS auth;"
+        
+        echo 'Creating enum types...'
+        psql -h supabase-postgres -p 5432 -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'factor_type' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.factor_type AS ENUM ('totp', 'webauthn', 'phone'); END IF; END \$\$;"
+        
+        psql -h supabase-postgres -p 5432 -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'factor_status' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.factor_status AS ENUM ('unverified', 'verified'); END IF; END \$\$;"
+        
+        psql -h supabase-postgres -p 5432 -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'aal_level' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.aal_level AS ENUM ('aal1', 'aal2', 'aal3'); END IF; END \$\$;"
+        
+        psql -h supabase-postgres -p 5432 -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'code_challenge_method' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.code_challenge_method AS ENUM ('S256', 'plain'); END IF; END \$\$;"
+        
+        psql -h supabase-postgres -p 5432 -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'oauth_authorization_status' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.oauth_authorization_status AS ENUM ('pending', 'approved', 'denied', 'expired'); END IF; END \$\$;"
+        
+        psql -h supabase-postgres -p 5432 -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'oauth_response_type' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.oauth_response_type AS ENUM ('code'); END IF; END \$\$;"
+        
+        echo 'Granting schema privileges...'
+        psql -h supabase-postgres -p 5432 -c "GRANT ALL ON SCHEMA auth TO supabase_auth_admin;"
+        psql -h supabase-postgres -p 5432 -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA auth TO supabase_auth_admin;"
+        psql -h supabase-postgres -p 5432 -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA auth TO supabase_auth_admin;"
+        psql -h supabase-postgres -p 5432 -c "GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA auth TO supabase_auth_admin;"
+        psql -h supabase-postgres -p 5432 -c "ALTER ROLE supabase_auth_admin SET search_path TO auth, public;"
         
         echo 'READY' > /status/init.status
-        echo 'Initialization complete. Keeping container alive for dependency tracking...'
+        echo 'Initialization complete. Keeping container alive...'
         tail -f /dev/null
     networks:
       - default
@@ -345,10 +337,6 @@ services:
     networks:
       - default
     restart: unless-stopped
-
-# ===================
-# NETWORKS
-# ===================
 
 # ===================
 # VOLUMES
