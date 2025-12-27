@@ -53,7 +53,7 @@ services:
         echo 'Database ready. Running initialization scripts...'
         
         psql -h supabase-postgres -p 5432 -U $${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d $${SUPABASE_POSTGRES_DB:-supabase_auth} <<'EOSQL'
-        DO \$\$
+        DO $$
         BEGIN
             IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'supabase_auth_admin') THEN
                 CREATE ROLE supabase_auth_admin WITH LOGIN PASSWORD '0yvhLSetDKV4BlFOH6YeM5LCBe2jmV2B';
@@ -61,7 +61,7 @@ services:
                 ALTER ROLE supabase_auth_admin WITH LOGIN PASSWORD '0yvhLSetDKV4BlFOH6YeM5LCBe2jmV2B';
             END IF;
             ALTER ROLE supabase_auth_admin WITH SUPERUSER CREATEDB CREATEROLE;
-        END \$\$;
+        END $$;
         GRANT ALL PRIVILEGES ON DATABASE supabase_auth TO supabase_auth_admin;
         EOSQL
         echo 'User creation completed.'
@@ -69,18 +69,18 @@ services:
         psql -h supabase-postgres -p 5432 -U $${SUPABASE_POSTGRES_USER:-supabase_auth_admin} -d $${SUPABASE_POSTGRES_DB:-supabase_auth} <<'EOSQL'
         CREATE SCHEMA IF NOT EXISTS auth;
         
-        DO \$\$
+        DO $$
         BEGIN
             IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'postgres') THEN
                 CREATE ROLE postgres WITH SUPERUSER LOGIN PASSWORD 'postgres';
             END IF;
-        END \$\$;
-        DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'factor_type' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.factor_type AS ENUM ('totp', 'webauthn', 'phone'); END IF; END \$\$;
-        DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'factor_status' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.factor_status AS ENUM ('unverified', 'verified'); END IF; END \$\$;
-        DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'aal_level' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.aal_level AS ENUM ('aal1', 'aal2', 'aal3'); END IF; END \$\$;
-        DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'code_challenge_method' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.code_challenge_method AS ENUM ('S256', 'plain'); END IF; END \$\$;
-        DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'oauth_authorization_status' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.oauth_authorization_status AS ENUM ('pending', 'approved', 'denied', 'expired'); END IF; END \$\$;
-        DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'oauth_response_type' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.oauth_response_type AS ENUM ('code'); END IF; END \$\$;
+        END $$;
+        DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'factor_type' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.factor_type AS ENUM ('totp', 'webauthn', 'phone'); END IF; END $$;
+        DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'factor_status' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.factor_status AS ENUM ('unverified', 'verified'); END IF; END $$;
+        DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'aal_level' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.aal_level AS ENUM ('aal1', 'aal2', 'aal3'); END IF; END $$;
+        DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'code_challenge_method' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.code_challenge_method AS ENUM ('S256', 'plain'); END IF; END $$;
+        DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'oauth_authorization_status' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.oauth_authorization_status AS ENUM ('pending', 'approved', 'denied', 'expired'); END IF; END $$;
+        DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'oauth_response_type' AND typnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'auth')) THEN CREATE TYPE auth.oauth_response_type AS ENUM ('code'); END IF; END $$;
         GRANT ALL ON SCHEMA auth TO supabase_auth_admin;
         GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA auth TO supabase_auth_admin;
         GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA auth TO supabase_auth_admin;
