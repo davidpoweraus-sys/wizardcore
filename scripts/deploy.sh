@@ -20,7 +20,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         -h|--help)
             echo "Usage: $0 [OPTIONS] [ENV_FILE]"
-            echo "Deploy wizardcore using docker-compose.prod.yml"
+            echo "Deploy wizardcore using docker-compose.yml"
             echo ""
             echo "Options:"
             echo "  -v, --verbose   Enable verbose output (set -x)"
@@ -51,7 +51,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 ENV_FILE="${ENV_FILE:-.env}"
-COMPOSE_FILE="docker-compose.prod.yml"
+COMPOSE_FILE="docker-compose.yml"
 PROJECT_NAME="${COOLIFY_RESOURCE_UUID:-wizardcore}"
 
 echo "=== WizardCore Deployment ==="
@@ -114,12 +114,19 @@ fi
 echo "Stopping existing containers..."
 docker compose --project-name "$PROJECT_NAME" -f "$COMPOSE_FILE" down --remove-orphans
 
-# Build and start services
-echo "Building and starting services..."
+# Pull latest images and start services
+echo "Pulling latest images..."
 if [[ -n "$ENV_FILE" ]]; then
-    docker compose --project-name "$PROJECT_NAME" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --build
+    docker compose --project-name "$PROJECT_NAME" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" pull
 else
-    docker compose --project-name "$PROJECT_NAME" -f "$COMPOSE_FILE" up -d --build
+    docker compose --project-name "$PROJECT_NAME" -f "$COMPOSE_FILE" pull
+fi
+
+echo "Starting services..."
+if [[ -n "$ENV_FILE" ]]; then
+    docker compose --project-name "$PROJECT_NAME" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d
+else
+    docker compose --project-name "$PROJECT_NAME" -f "$COMPOSE_FILE" up -d
 fi
 
 echo "Waiting for services to become healthy (max 2 minutes)..."
