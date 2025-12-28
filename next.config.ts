@@ -17,10 +17,6 @@ const nextConfig: NextConfig = {
             value: 'true',
           },
           {
-            key: 'Access-Control-Allow-Origin',
-            value: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://auth.offensivewizard.com',
-          },
-          {
             key: 'Access-Control-Allow-Methods',
             value: 'GET,DELETE,PATCH,POST,PUT,OPTIONS',
           },

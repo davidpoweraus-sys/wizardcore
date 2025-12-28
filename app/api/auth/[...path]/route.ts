@@ -19,14 +19,78 @@ import { NextRequest, NextResponse } from 'next/server'
 // Outside Docker: use public URL
 const GOTRUE_URL = process.env.GOTRUE_URL || process.env.SUPABASE_INTERNAL_URL || 'http://supabase-auth:9999'
 
+/**
+ * Validate and normalize CORS origin
+ *
+ * Enterprise CORS handling principles:
+ * 1. Validate against allowed origins list
+ * 2. Normalize origin (strip path, port, etc.)
+ * 3. Support wildcard patterns
+ * 4. Environment-specific configurations
+ *
+ * This implementation allows:
+ * - Any subdomain of offensivewizard.com (*.offensivewizard.com)
+ * - Localhost with any port (localhost:*)
+ * - Specific development ports
+ */
+function validateOrigin(origin: string | null): string | null {
+  if (!origin || origin === '*') {
+    // In production, avoid wildcard when using credentials
+    if (process.env.NODE_ENV === 'production') {
+      return null
+    }
+    return '*'
+  }
+
+  try {
+    const url = new URL(origin)
+    const hostname = url.hostname
+    
+    // Enterprise pattern: Allow any offensivewizard.com subdomain
+    if (hostname === 'offensivewizard.com' ||
+        hostname === 'www.offensivewizard.com' ||
+        hostname.endsWith('.offensivewizard.com')) {
+      // Return the exact origin (browser will send correct origin without path)
+      return origin
+    }
+    
+    // Development: Allow localhost with any port
+    if (hostname === 'localhost') {
+      return origin
+    }
+    
+    // Check specific allowed origins from environment
+    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || []
+    if (allowedOrigins.includes(origin)) {
+      return origin
+    }
+    
+    return null
+  } catch (error) {
+    console.warn('Invalid origin format:', origin)
+    return null
+  }
+}
+
 // Handle OPTIONS preflight requests for CORS
 export async function OPTIONS(request: NextRequest) {
-  const origin = request.headers.get('origin') || '*'
+  const origin = request.headers.get('origin')
+  const validatedOrigin = validateOrigin(origin)
+  
+  // If no valid origin, return 403 for preflight
+  if (!validatedOrigin) {
+    return new NextResponse(null, {
+      status: 403,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+  }
   
   return new NextResponse(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Origin': validatedOrigin,
       'Access-Control-Allow-Credentials': 'true',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Client-Info, apikey, x-client-info, x-supabase-api-version',
@@ -146,13 +210,34 @@ async function proxyRequest(request: NextRequest, path: string[]) {
       console.log('✅ Response:', response.status, response.statusText)
     }
 
-    // Get origin for CORS
-    const origin = request.headers.get('origin') || '*'
+    // Get and validate origin for CORS
+    const origin = request.headers.get('origin')
+    const validatedOrigin = validateOrigin(origin)
+
+    // If no valid origin, return 403
+    if (!validatedOrigin) {
+      return new NextResponse(
+        JSON.stringify({
+          error: 'cors_error',
+          message: 'Origin not allowed',
+          details: {
+            origin,
+            allowed_origins: 'localhost:*, *.offensivewizard.com, offensivewizard.com'
+          }
+        }),
+        {
+          status: 403,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+    }
 
     // Return response with proper CORS headers
     const responseHeaders = new Headers()
     responseHeaders.set('Content-Type', response.headers.get('Content-Type') || 'application/json')
-    responseHeaders.set('Access-Control-Allow-Origin', origin)
+    responseHeaders.set('Access-Control-Allow-Origin', validatedOrigin)
     responseHeaders.set('Access-Control-Allow-Credentials', 'true')
     responseHeaders.set('Access-Control-Expose-Headers', 'X-Total-Count')
     
@@ -196,7 +281,19 @@ async function proxyRequest(request: NextRequest, path: string[]) {
       }
     }
 
+    // Get and validate origin for error response
+    const errorOrigin = request.headers.get('origin')
+    const validatedErrorOrigin = validateOrigin(errorOrigin)
+    
     // Return error response
+    const errorHeaders = new Headers()
+    errorHeaders.set('Content-Type', 'application/json')
+    
+    if (validatedErrorOrigin) {
+      errorHeaders.set('Access-Control-Allow-Origin', validatedErrorOrigin)
+      errorHeaders.set('Access-Control-Allow-Credentials', 'true')
+    }
+    
     return new NextResponse(
       JSON.stringify({
         error: 'proxy_error',
@@ -209,11 +306,7 @@ async function proxyRequest(request: NextRequest, path: string[]) {
       }),
       {
         status: statusCode,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': request.headers.get('origin') || '*',
-          'Access-Control-Allow-Credentials': 'true',
-        },
+        headers: errorHeaders,
       }
     )
   }

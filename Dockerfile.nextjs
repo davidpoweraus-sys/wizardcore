@@ -25,7 +25,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Build-time environment variables (can be overridden via --build-arg)
 # CRITICAL: Use /api/auth proxy endpoint for Supabase URL
 ARG NEXT_PUBLIC_SUPABASE_URL=https://app.offensivewizard.com/api/auth
-ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzY2NzQ5NzMzLCJleHAiOjIwODIxMDk3MzN9.R7vaBwwIssuKBRIBN0jx7xvzs7rYxjeD3zcZXhF60eQ
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzY2NzY1OTczLCJleHAiOjIwODIxMjU5NzN9.piJIh93w2-Pg6aBA0FfNLP7uUWNRANsAtw4wWX2sE3c
 ARG NEXT_PUBLIC_JUDGE0_API_URL=https://judge0.offensivewizard.com
 ARG NEXT_PUBLIC_BACKEND_URL=https://api.offensivewizard.com
 ARG NEXT_PUBLIC_SITE_URL=https://app.offensivewizard.com
@@ -34,7 +34,7 @@ ARG CACHE_BUST=1  # Cache busting variable
 
 # Set environment variables with fallback and build
 RUN export NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL:-https://app.offensivewizard.com/api/auth}" && \
-    export NEXT_PUBLIC_SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzY2NzQ5NzMzLCJleHAiOjIwODIxMDk3MzN9.R7vaBwwIssuKBRIBN0jx7xvzs7rYxjeD3zcZXhF60eQ}" && \
+    export NEXT_PUBLIC_SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzY2NzY1OTczLCJleHAiOjIwODIxMjU5NzN9.piJIh93w2-Pg6aBA0FfNLP7uUWNRANsAtw4wWX2sE3c}" && \
     export NEXT_PUBLIC_JUDGE0_API_URL="${NEXT_PUBLIC_JUDGE0_API_URL:-https://judge0.offensivewizard.com}" && \
     export NEXT_PUBLIC_BACKEND_URL="${NEXT_PUBLIC_BACKEND_URL:-https://api.offensivewizard.com}" && \
     export NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-https://app.offensivewizard.com}" && \

@@ -234,7 +234,7 @@ services:
     environment:
       PORT: ${PORT:-8080}
       ENVIRONMENT: ${ENVIRONMENT:-production}
-      DATABASE_URL: ${DATABASE_URL}?sslmode=disable
+      DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
       JUDGE0_API_URL: ${JUDGE0_API_URL:-http://judge0:2358}
       JUDGE0_API_KEY: ${JUDGE0_API_KEY}
@@ -252,7 +252,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: limpet/wizardcore-frontend:latest
+    image: wizardcore-frontend:latest
     depends_on:
       backend:
         condition: service_healthy
