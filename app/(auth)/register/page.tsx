@@ -70,7 +70,8 @@ export default function RegisterPage() {
       if (data.user) {
         try {
           console.log('📤 Creating user in wizardcore database...')
-          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/v1/users`, {
+          // Use proxy route instead of direct backend API call to avoid CORS issues
+          const response = await fetch('/api/backend/v1/users', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
