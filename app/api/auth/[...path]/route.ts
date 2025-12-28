@@ -150,19 +150,31 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     const origin = request.headers.get('origin') || '*'
 
     // Return response with proper CORS headers
+    const responseHeaders = new Headers()
+    responseHeaders.set('Content-Type', response.headers.get('Content-Type') || 'application/json')
+    responseHeaders.set('Access-Control-Allow-Origin', origin)
+    responseHeaders.set('Access-Control-Allow-Credentials', 'true')
+    responseHeaders.set('Access-Control-Expose-Headers', 'X-Total-Count')
+    
+    // Forward ALL Set-Cookie headers from GoTrue (multiple cookies)
+    const setCookieHeaders = response.headers.getSetCookie()
+    for (const cookie of setCookieHeaders) {
+      responseHeaders.append('Set-Cookie', cookie)
+    }
+    
+    // Also forward other important headers
+    const headersToForward = ['X-Total-Count', 'Cache-Control', 'ETag']
+    for (const header of headersToForward) {
+      const value = response.headers.get(header)
+      if (value) {
+        responseHeaders.set(header, value)
+      }
+    }
+
     return new NextResponse(responseData, {
       status: response.status,
       statusText: response.statusText,
-      headers: {
-        'Content-Type': response.headers.get('Content-Type') || 'application/json',
-        'Access-Control-Allow-Origin': origin,
-        'Access-Control-Allow-Credentials': 'true',
-        'Access-Control-Expose-Headers': 'X-Total-Count',
-        // Forward any Set-Cookie headers from GoTrue
-        ...(response.headers.get('Set-Cookie') && {
-          'Set-Cookie': response.headers.get('Set-Cookie')!
-        }),
-      },
+      headers: responseHeaders,
     })
   } catch (error) {
     console.error('❌ Proxy error:')

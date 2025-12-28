@@ -108,26 +108,33 @@ services:
         condition: service_healthy
       supabase-init:
         condition: service_healthy
-     environment:
-       GOTRUE_API_HOST: ${GOTRUE_API_HOST:-0.0.0.0}
-       GOTRUE_API_PORT: ${GOTRUE_API_PORT:-9999}
-       GOTRUE_DB_DRIVER: ${GOTRUE_DB_DRIVER:-postgres}
-       GOTRUE_DB_DATABASE_URL: ${GOTRUE_DB_DATABASE_URL:-postgresql://supabase_auth_admin:password@supabase-postgres:5432/supabase_auth?sslmode=disable}
-       GOTRUE_SITE_URL: ${GOTRUE_SITE_URL:-https://app.offensivewizard.com}
-       GOTRUE_JWT_SECRET: ${GOTRUE_JWT_SECRET}
-       GOTRUE_JWT_EXP: ${GOTRUE_JWT_EXP:-3600}
-       GOTRUE_JWT_AUD: ${GOTRUE_JWT_AUD:-authenticated}
-       GOTRUE_JWT_ISSUER: ${GOTRUE_JWT_ISSUER:-supabase}
-       GOTRUE_DISABLE_SIGNUP: ${GOTRUE_DISABLE_SIGNUP:-false}
-       GOTRUE_MAILER_AUTOCONFIRM: ${GOTRUE_MAILER_AUTOCONFIRM:-true}
-       API_EXTERNAL_URL: ${API_EXTERNAL_URL:-https://auth.offensivewizard.com}
-       GOTRUE_CORS_ALLOWED_ORIGINS: ${GOTRUE_CORS_ALLOWED_ORIGINS:-https://app.offensivewizard.com}
-       GOTRUE_CORS_ALLOWED_HEADERS: ${GOTRUE_CORS_ALLOWED_HEADERS:-Authorization,Content-Type,X-Client-Info,X-Requested-With,apikey,x-client-info,x-supabase-api-version,Accept,Accept-Language,Content-Language}
-       GOTRUE_CORS_ALLOWED_METHODS: ${GOTRUE_CORS_ALLOWED_METHODS:-GET,POST,PUT,PATCH,DELETE,OPTIONS}
-       GOTRUE_CORS_EXPOSED_HEADERS: ${GOTRUE_CORS_EXPOSED_HEADERS:-X-Total-Count}
-       GOTRUE_CORS_ALLOW_CREDENTIALS: ${GOTRUE_CORS_ALLOW_CREDENTIALS:-true}
-       GOTRUE_DB_AUTOMIGRATE: ${GOTRUE_DB_AUTOMIGRATE:-true}
-       GOTRUE_LOG_LEVEL: ${GOTRUE_LOG_LEVEL:-info}
+    environment:
+      GOTRUE_API_HOST: ${GOTRUE_API_HOST:-0.0.0.0}
+      GOTRUE_API_PORT: ${GOTRUE_API_PORT:-9999}
+      GOTRUE_DB_DRIVER: ${GOTRUE_DB_DRIVER:-postgres}
+      GOTRUE_DB_DATABASE_URL: ${GOTRUE_DB_DATABASE_URL:-postgresql://supabase_auth_admin:password@supabase-postgres:5432/supabase_auth?sslmode=disable}
+      GOTRUE_SITE_URL: ${GOTRUE_SITE_URL:-https://app.offensivewizard.com}
+      GOTRUE_JWT_SECRET: ${GOTRUE_JWT_SECRET}
+      GOTRUE_JWT_EXP: ${GOTRUE_JWT_EXP:-3600}
+      GOTRUE_JWT_AUD: ${GOTRUE_JWT_AUD:-authenticated}
+      GOTRUE_JWT_ISSUER: ${GOTRUE_JWT_ISSUER:-supabase}
+      GOTRUE_DISABLE_SIGNUP: ${GOTRUE_DISABLE_SIGNUP:-false}
+      GOTRUE_MAILER_AUTOCONFIRM: ${GOTRUE_MAILER_AUTOCONFIRM:-true}
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL:-https://app.offensivewizard.com/api/auth}
+      GOTRUE_CORS_ALLOWED_ORIGINS: ${GOTRUE_CORS_ALLOWED_ORIGINS:-https://app.offensivewizard.com}
+      GOTRUE_CORS_ALLOWED_HEADERS: ${GOTRUE_CORS_ALLOWED_HEADERS:-Authorization,Content-Type,X-Client-Info,X-Requested-With,apikey,x-client-info,x-supabase-api-version,Accept,Accept-Language,Content-Language}
+      GOTRUE_CORS_ALLOWED_METHODS: ${GOTRUE_CORS_ALLOWED_METHODS:-GET,POST,PUT,PATCH,DELETE,OPTIONS}
+      GOTRUE_CORS_EXPOSED_HEADERS: ${GOTRUE_CORS_EXPOSED_HEADERS:-X-Total-Count}
+      GOTRUE_CORS_ALLOW_CREDENTIALS: ${GOTRUE_CORS_ALLOW_CREDENTIALS:-true}
+      GOTRUE_DB_AUTOMIGRATE: ${GOTRUE_DB_AUTOMIGRATE:-true}
+      GOTRUE_LOG_LEVEL: ${GOTRUE_LOG_LEVEL:-info}
+      GOTRUE_MAILER_EXTERNAL_HOSTS: ${GOTRUE_MAILER_EXTERNAL_HOSTS:-app.offensivewizard.com}
+      # Cookie configuration for proxy setup
+      GOTRUE_COOKIE_DOMAIN: ${GOTRUE_COOKIE_DOMAIN:-.offensivewizard.com}
+      GOTRUE_COOKIE_PATH: ${GOTRUE_COOKIE_PATH:-/}
+      GOTRUE_COOKIE_SECURE: ${GOTRUE_COOKIE_SECURE:-true}
+      GOTRUE_COOKIE_SAMESITE: ${GOTRUE_COOKIE_SAMESITE:-lax}
+      GOTRUE_COOKIE_LIFETIME: ${GOTRUE_COOKIE_LIFETIME:-604800}
     ports:
       - "9999:9999"
     networks:
@@ -227,7 +234,7 @@ services:
     environment:
       PORT: ${PORT:-8080}
       ENVIRONMENT: ${ENVIRONMENT:-production}
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: ${DATABASE_URL}?sslmode=disable
       REDIS_URL: ${REDIS_URL}
       JUDGE0_API_URL: ${JUDGE0_API_URL:-http://judge0:2358}
       JUDGE0_API_KEY: ${JUDGE0_API_KEY}
@@ -253,10 +260,11 @@ services:
         condition: service_healthy
     environment:
       # Public URLs (used by browser for reference)
-      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-https://auth.offensivewizard.com}
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-https://app.offensivewizard.com/api/auth}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-https://offensivewizard.com/api}
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-https://api.offensivewizard.com}
       NEXT_PUBLIC_JUDGE0_API_URL: ${NEXT_PUBLIC_JUDGE0_API_URL:-https://judge0.offensivewizard.com}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://app.offensivewizard.com}
       # Internal URLs (used by proxy routes to connect to services)
       SUPABASE_INTERNAL_URL: ${SUPABASE_INTERNAL_URL:-http://supabase-auth:9999}
       GOTRUE_URL: ${GOTRUE_URL:-http://supabase-auth:9999}
@@ -266,7 +274,6 @@ services:
       - "3001:3000"
     networks:
       - default
-      - dokploy-network
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
       interval: 10s
