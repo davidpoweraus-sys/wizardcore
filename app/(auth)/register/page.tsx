@@ -117,7 +117,7 @@ export default function RegisterPage() {
               priority
             />
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-neon-cyan to-neon-lavender bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-500 to-purple-400 bg-clip-text text-transparent">
             Join WizardCore
           </h1>
           <p className="text-text-secondary mt-2">
@@ -136,7 +136,7 @@ export default function RegisterPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-bg-tertiary border border-border-subtle rounded-lg text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-neon-lavender focus:border-transparent transition"
+                className="w-full px-4 py-3 bg-bg-tertiary border border-border-subtle rounded-lg text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition"
                 placeholder="you@example.com"
                 required
               />
@@ -151,7 +151,7 @@ export default function RegisterPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-bg-tertiary border border-border-subtle rounded-lg text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-neon-lavender focus:border-transparent transition"
+                className="w-full px-4 py-3 bg-bg-tertiary border border-border-subtle rounded-lg text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition"
                 placeholder="••••••••"
                 required
               />
@@ -169,7 +169,7 @@ export default function RegisterPage() {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-bg-tertiary border border-border-subtle rounded-lg text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-neon-lavender focus:border-transparent transition"
+                className="w-full px-4 py-3 bg-bg-tertiary border border-border-subtle rounded-lg text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition"
                 placeholder="••••••••"
                 required
               />
@@ -184,7 +184,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-neon-purple to-neon-pink text-white font-semibold rounded-lg hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+               className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-semibold rounded-lg hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating account...' : 'Create Account'}
             </button>
@@ -193,7 +193,7 @@ export default function RegisterPage() {
           <div className="mt-6 text-center">
             <p className="text-text-tertiary text-sm">
               Already have an account?{' '}
-              <Link href="/login" className="text-neon-cyan hover:underline font-medium">
+              <Link href="/login" className="text-cyan-500 hover:underline font-medium">
                 Sign in
               </Link>
             </p>
@@ -203,9 +203,9 @@ export default function RegisterPage() {
             <div className="space-y-3">
               <p className="text-xs text-text-muted text-center">
                 By registering, you agree to our{' '}
-                <a href="#" className="text-neon-lavender hover:underline">Terms of Service</a>{' '}
+                <a href="#" className="text-purple-400 hover:underline">Terms of Service</a>{' '}
                 and{' '}
-                <a href="#" className="text-neon-lavender hover:underline">Privacy Policy</a>.
+                <a href="#" className="text-purple-400 hover:underline">Privacy Policy</a>.
               </p>
               <p className="text-xs text-text-muted text-center">
                 You'll receive a confirmation email to verify your account.
