@@ -114,19 +114,19 @@ fi
 echo "Stopping existing containers..."
 docker compose --project-name "$PROJECT_NAME" -f "$COMPOSE_FILE" down --remove-orphans
 
-# Pull latest images and start services
-echo "Pulling latest images..."
+# Force pull latest images (always pull, don't use cache)
+echo "Force pulling latest images (cache busting)..."
 if [[ -n "$ENV_FILE" ]]; then
-    docker compose --project-name "$PROJECT_NAME" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" pull
+    docker compose --project-name "$PROJECT_NAME" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" pull --policy always
 else
-    docker compose --project-name "$PROJECT_NAME" -f "$COMPOSE_FILE" pull
+    docker compose --project-name "$PROJECT_NAME" -f "$COMPOSE_FILE" pull --policy always
 fi
 
-echo "Starting services..."
+echo "Starting services with force recreate (ensures new containers)..."
 if [[ -n "$ENV_FILE" ]]; then
-    docker compose --project-name "$PROJECT_NAME" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d
+    docker compose --project-name "$PROJECT_NAME" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --force-recreate
 else
-    docker compose --project-name "$PROJECT_NAME" -f "$COMPOSE_FILE" up -d
+    docker compose --project-name "$PROJECT_NAME" -f "$COMPOSE_FILE" up -d --force-recreate
 fi
 
 echo "Waiting for services to become healthy (max 2 minutes)..."

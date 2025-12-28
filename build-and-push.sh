@@ -31,13 +31,15 @@ echo ""
 echo "📦 Image: ${FULL_IMAGE}"
 echo ""
 
-# Build the Docker image with build args
-echo "🔨 Building Docker image..."
+# Build the Docker image with build args and cache busting
+echo "🔨 Building Docker image (with cache busting)..."
+CACHE_BUST=$(date +%s)  # Unix timestamp for cache busting
 docker build \
   --build-arg NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL}" \
   --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY}" \
   --build-arg NEXT_PUBLIC_BACKEND_URL="${NEXT_PUBLIC_BACKEND_URL}" \
   --build-arg NEXT_PUBLIC_JUDGE0_API_URL="${NEXT_PUBLIC_JUDGE0_API_URL}" \
+  --build-arg CACHE_BUST="${CACHE_BUST}" \
   -t "${FULL_IMAGE}" \
   -f Dockerfile \
   .

@@ -1,6 +1,9 @@
 # Build stage
 FROM golang:1.24-alpine AS builder
 
+# Cache busting argument
+ARG CACHE_BUST=1
+
 WORKDIR /app
 
 # Copy go mod and sum files
@@ -10,8 +13,9 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/api
+# Build the application (with cache busting)
+RUN echo "Cache bust: ${CACHE_BUST}" && \
+    CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/api
 
 # Runtime stage
 FROM alpine:latest
