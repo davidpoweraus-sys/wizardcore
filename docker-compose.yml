@@ -223,9 +223,7 @@ services:
     restart: on-failure
 
   backend:
-    build:
-      context: ./wizardcore-backend
-      dockerfile: Dockerfile
+    image: limpet/wizardcore-backend:latest
     depends_on:
       postgres:
         condition: service_healthy
@@ -254,16 +252,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.nextjs
-      args:
-        - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-https://app.offensivewizard.com/api/auth}
-        - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-        - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL:-https://api.offensivewizard.com}
-        - NEXT_PUBLIC_JUDGE0_API_URL=${NEXT_PUBLIC_JUDGE0_API_URL:-https://judge0.offensivewizard.com}
-        - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://app.offensivewizard.com}
-        - SUPABASE_INTERNAL_URL=${SUPABASE_INTERNAL_URL:-http://supabase-auth:9999}
+    image: limpet/wizardcore-frontend:latest
     depends_on:
       backend:
         condition: service_healthy
