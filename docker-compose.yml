@@ -223,7 +223,7 @@ services:
     restart: on-failure
 
   backend:
-    image: limpet/wizardcore-backend:latest
+    image: docker.io/limpet/wizardcore-backend:latest
     depends_on:
       postgres:
         condition: service_healthy
@@ -252,7 +252,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: limpet/wizardcore-frontend:latest
+    image: docker.io/limpet/wizardcore-frontend:latest
     depends_on:
       backend:
         condition: service_healthy
