@@ -139,14 +139,19 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     const url = new URL(request.url)
     const targetPath = path.join('/')
     
+    // Prepend /api to the path since backend routes are under /api/v1
+    // Frontend calls /api/backend/v1/users -> backend expects /api/v1/users
+    const backendPath = targetPath.startsWith('api/') ? targetPath : `api/${targetPath}`
+    
     // Build the full target URL
     const baseUrl = BACKEND_URL.endsWith('/') ? BACKEND_URL.slice(0, -1) : BACKEND_URL
-    const targetUrl = `${baseUrl}/${targetPath}${url.search}`
+    const targetUrl = `${baseUrl}/${backendPath}${url.search}`
 
     // Log request details for debugging
     console.log('🔄 Backend Proxy:')
     console.log('  Method:', request.method)
-    console.log('  Path:', targetPath)
+    console.log('  Original Path:', targetPath)
+    console.log('  Backend Path:', backendPath)
     console.log('  Target:', targetUrl)
 
     // Get auth token from session
