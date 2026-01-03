@@ -19,17 +19,26 @@ export default function LoginPage() {
     setLoading(true)
     setError(null)
 
+    // BLUE DIE TEST: Log to browser console for debugging
+    console.log('🎲 BLUE DIE TEST - Login attempt starting')
+    console.log('  Email:', email)
+    console.log('  Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.log('  Timestamp:', new Date().toISOString())
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
     if (error) {
+      console.error('🎲 BLUE DIE TEST - Login error:', error.message)
+      console.error('  Error details:', error)
       setError(error.message)
       setLoading(false)
       return
     }
 
+    console.log('🎲 BLUE DIE TEST - Login successful')
     router.push('/dashboard')
   }
 

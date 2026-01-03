@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 
 /**
  * Supabase Auth Proxy for GoTrue
- * 
+ *
  * This proxy solves the path mismatch between:
  * - @supabase/supabase-js client (expects /auth/v1/* endpoints)
  * - Standalone GoTrue server (serves at /* root endpoints)
- * 
+ *
  * The Supabase client will make requests to:
  *   https://yourdomain.com/api/auth/auth/v1/signup
- * 
+ *
  * This proxy strips "/auth/v1" and forwards to:
  *   https://auth.offensivewizard.com/signup
  */
@@ -18,6 +18,10 @@ import { NextRequest, NextResponse } from 'next/server'
 // In Docker: use internal container name
 // Outside Docker: use public URL
 const GOTRUE_URL = process.env.GOTRUE_URL || process.env.SUPABASE_INTERNAL_URL || 'http://supabase-auth:9999'
+
+// BLUE DIE TEST: Clear identifier for debugging login issues
+// This will appear in logs and response headers to verify the correct image is running
+const PROXY_VERSION = 'login-fix-v2-20260103-1851'
 
 /**
  * Validate and normalize CORS origin
@@ -95,6 +99,9 @@ export async function OPTIONS(request: NextRequest) {
       'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Client-Info, apikey, x-client-info, x-supabase-api-version',
       'Access-Control-Max-Age': '86400',
+      // BLUE DIE TEST: Add version header to preflight
+      'X-Auth-Proxy-Version': PROXY_VERSION,
+      'X-Login-Fix': 'active',
     },
   })
 }
@@ -145,6 +152,10 @@ export async function DELETE(
  */
 async function proxyRequest(request: NextRequest, path: string[]) {
   try {
+    // BLUE DIE TEST: Log version identifier
+    console.log('🎲 BLUE DIE TEST - Auth Proxy Version:', PROXY_VERSION)
+    console.log('🎲 This log confirms the login-fix image is running')
+    
     const url = new URL(request.url)
     let targetPath = path.join('/')
     
@@ -170,6 +181,7 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     console.log('  Target:', targetUrl)
     console.log('  GOTRUE_URL:', GOTRUE_URL)
     console.log('  Query:', url.search)
+    console.log('  Version:', PROXY_VERSION)
     
     // Log headers for debugging (redact sensitive values)
     const authHeader = request.headers.get('authorization') || request.headers.get('Authorization')
@@ -292,6 +304,10 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     responseHeaders.set('Access-Control-Allow-Credentials', 'true')
     responseHeaders.set('Access-Control-Expose-Headers', 'X-Total-Count')
     
+    // BLUE DIE TEST: Add version header for browser inspection
+    responseHeaders.set('X-Auth-Proxy-Version', PROXY_VERSION)
+    responseHeaders.set('X-Login-Fix', 'active')
+    
     // Forward ALL Set-Cookie headers from GoTrue (multiple cookies)
     const setCookieHeaders = response.headers.getSetCookie()
     for (const cookie of setCookieHeaders) {
@@ -340,6 +356,10 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     const errorHeaders = new Headers()
     errorHeaders.set('Content-Type', 'application/json')
     
+    // BLUE DIE TEST: Add version header even for errors
+    errorHeaders.set('X-Auth-Proxy-Version', PROXY_VERSION)
+    errorHeaders.set('X-Login-Fix', 'active')
+    
     if (validatedErrorOrigin) {
       errorHeaders.set('Access-Control-Allow-Origin', validatedErrorOrigin)
       errorHeaders.set('Access-Control-Allow-Credentials', 'true')
@@ -352,7 +372,8 @@ async function proxyRequest(request: NextRequest, path: string[]) {
         details: {
           gotrue_url: GOTRUE_URL,
           error_type: error instanceof Error ? error.constructor.name : typeof error,
-          suggestion: 'If running in Docker, ensure SUPABASE_INTERNAL_URL is set to http://supabase-auth:9999'
+          suggestion: 'If running in Docker, ensure SUPABASE_INTERNAL_URL is set to http://supabase-auth:9999',
+          proxy_version: PROXY_VERSION
         }
       }),
       {
