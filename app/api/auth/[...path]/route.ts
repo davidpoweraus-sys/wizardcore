@@ -162,13 +162,21 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     const baseUrl = GOTRUE_URL.endsWith('/') ? GOTRUE_URL.slice(0, -1) : GOTRUE_URL
     const targetUrl = `${baseUrl}/${targetPath}${url.search}`
 
-    // Log request details for debugging
+    // Log request details for debugging - ALWAYS log in production for auth issues
     console.log('🔄 GoTrue Proxy:')
     console.log('  Method:', request.method)
     console.log('  Original:', path.join('/'))
     console.log('  Stripped:', targetPath)
     console.log('  Target:', targetUrl)
     console.log('  GOTRUE_URL:', GOTRUE_URL)
+    console.log('  Query:', url.search)
+    
+    // Log headers for debugging (redact sensitive values)
+    const authHeader = request.headers.get('authorization') || request.headers.get('Authorization')
+    if (authHeader) {
+      console.log('  Has Authorization header:', authHeader.substring(0, 20) + '...')
+    }
+    console.log('  Has apikey header:', !!request.headers.get('apikey'))
 
     // Copy headers from incoming request
     const headers = new Headers()
@@ -178,6 +186,35 @@ async function proxyRequest(request: NextRequest, path: string[]) {
         headers.set(key, value)
       }
     })
+
+    // CRITICAL FIX: For password grant login requests, remove Authorization header and auth cookies
+    // The Supabase client incorrectly adds Authorization header with anon key JWT
+    // for login requests, which can cause GoTrue to hang or reject the request
+    // Also remove auth cookies to prevent session conflicts during login
+    if (targetPath === 'token' && url.search.includes('grant_type=password')) {
+      console.log('🔐 Removing Authorization header and auth cookies for password grant login')
+      headers.delete('authorization')
+      headers.delete('Authorization')
+      
+      // Also remove auth-related cookies to prevent conflicts
+      const cookieHeader = headers.get('cookie')
+      if (cookieHeader) {
+        // Remove sb-* cookies (Supabase auth cookies)
+        const cleanedCookies = cookieHeader.split(';').filter(cookie => {
+          const cookieName = cookie.trim().split('=')[0]
+          return !cookieName.startsWith('sb-')
+        }).join('; ')
+        
+        if (cleanedCookies !== cookieHeader) {
+          console.log('  Removed auth cookies')
+          if (cleanedCookies) {
+            headers.set('cookie', cleanedCookies)
+          } else {
+            headers.delete('cookie')
+          }
+        }
+      }
+    }
 
     // Read request body if present
     let body = null
@@ -191,23 +228,37 @@ async function proxyRequest(request: NextRequest, path: string[]) {
 
     // Make request to GoTrue with timeout
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+    const timeoutId = setTimeout(() => {
+      console.error('⏰ Proxy timeout after 30 seconds for:', targetUrl)
+      console.error('  Method:', request.method)
+      console.error('  Headers:', Object.fromEntries(headers.entries()))
+      controller.abort()
+    }, 30000) // 30 second timeout
 
+    const startTime = Date.now()
     const response = await fetch(targetUrl, {
       method: request.method,
       headers: headers,
       body: body,
       signal: controller.signal,
     })
+    const endTime = Date.now()
+    const duration = endTime - startTime
 
     clearTimeout(timeoutId)
+    
+    // Log slow requests
+    if (duration > 5000) {
+      console.warn(`🐌 Slow request: ${duration}ms for ${targetUrl}`)
+    }
 
     // Get response body
     const responseData = await response.text()
     
-    // Log response for debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.log('✅ Response:', response.status, response.statusText)
+    // Log response for debugging - ALWAYS log in production for auth issues
+    console.log('✅ Response:', response.status, response.statusText)
+    if (response.status >= 400) {
+      console.log('  Error response:', responseData.substring(0, 200))
     }
 
     // Get and validate origin for CORS
