@@ -250,9 +250,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.nextjs
+    image: limpet/wizardcore-frontend:latest
     depends_on:
       backend:
         condition: service_healthy
