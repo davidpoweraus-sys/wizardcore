@@ -38,18 +38,57 @@ export default function LoginPage() {
       return
     }
 
-    console.log('🎲 BLUE DIE TEST - Login successful')
+    console.log('🎲 BLUE DIE TEST - Login successful - Starting post-login flow')
     
-    // CRITICAL FIX: Wait a moment for cookies to be set before redirecting
-    // This fixes the race condition where middleware doesn't see the auth cookie
-    console.log('🎲 Waiting 100ms for cookie propagation...')
-    await new Promise(resolve => setTimeout(resolve, 100))
-    
-    // Also refresh the session to ensure cookies are properly set
-    const { data: { session } } = await supabase.auth.getSession()
-    console.log('🎲 Session after login:', session ? 'present' : 'absent')
-    
-    router.push('/dashboard')
+    try {
+      // CRITICAL FIX: Wait a moment for cookies to be set before redirecting
+      // This fixes the race condition where middleware doesn't see the auth cookie
+      console.log('🎲 Step 1: Waiting 100ms for cookie propagation...')
+      await new Promise(resolve => setTimeout(resolve, 100))
+      console.log('🎲 Step 1: Complete')
+      
+      // Also refresh the session to ensure cookies are properly set
+      console.log('🎲 Step 2: Getting session...')
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      console.log('🎲 Step 2: Session result - session:', session ? 'present' : 'absent')
+      if (sessionError) {
+        console.error('🎲 Step 2: Session error:', sessionError)
+      }
+      
+      // Check cookies
+      console.log('🎲 Step 3: Checking browser cookies...')
+      const cookies = document.cookie
+      console.log('🎲 Step 3: Cookies:', cookies)
+      const hasAuthCookie = cookies.includes('sb-')
+      console.log('🎲 Step 3: Has auth cookie:', hasAuthCookie)
+      
+      console.log('🎲 Step 4: Redirecting to dashboard...')
+      
+      // Try router.push first
+      console.log('🎲 Step 4a: Attempting router.push...')
+      try {
+        router.push('/dashboard')
+        console.log('🎲 Step 4a: Router push called successfully')
+      } catch (routerError) {
+        console.error('🎲 Step 4a: Router.push error:', routerError)
+        // Immediate fallback to window.location
+        console.log('🎲 Step 4b: Falling back to window.location.href')
+        window.location.href = '/dashboard'
+      }
+      
+      // Additional fallback after delay
+      setTimeout(() => {
+        console.log('🎲 Step 4c: Checking if still on login page...')
+        if (window.location.pathname.includes('/login')) {
+          console.log('🎲 Step 4c: Still on login page, forcing hard redirect...')
+          window.location.href = '/dashboard'
+        }
+      }, 500)
+    } catch (error) {
+      console.error('🎲 ERROR in post-login flow:', error)
+      setError('Login successful but redirect failed: ' + (error instanceof Error ? error.message : String(error)))
+      setLoading(false)
+    }
   }
 
   return (
