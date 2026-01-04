@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
 // Version identifier for tracking which fix is deployed
-const MIDDLEWARE_VERSION = 'session-refresh-fix-20260104-1159'
+const MIDDLEWARE_VERSION = 'rsc-fix-20260104-1315'
 
 export async function middleware(request: NextRequest) {
   // Version tracking in logs
@@ -15,15 +15,36 @@ export async function middleware(request: NextRequest) {
   // CRITICAL FIX: Check if this is an RSC fetch request
   // Next.js RSC fetches include `_rsc` query parameter or specific headers
   // Also check for RSC header which Next.js uses for React Server Components
-  const isRSCFetch = request.nextUrl.search.includes('_rsc=') ||
-                     request.headers.get('x-nextjs-data') === '1' ||
-                     request.headers.get('next-router-prefetch') === '1' ||
-                     request.headers.get('next-action') === '1' ||
-                     request.headers.get('RSC') === '1' ||
-                     request.headers.get('Next-Router-State-Tree') !== null
+  // IMPORTANT: Also check for Accept header containing 'text/x-component'
+  const acceptHeader = request.headers.get('accept') || ''
+  const hasRSCParam = request.nextUrl.search.includes('_rsc=')
+  const xNextJSData = request.headers.get('x-nextjs-data')
+  const nextRouterPrefetch = request.headers.get('next-router-prefetch')
+  const nextAction = request.headers.get('next-action')
+  const rscHeader = request.headers.get('RSC')
+  const nextRouterStateTree = request.headers.get('Next-Router-State-Tree')
+  
+  const isRSCFetch = hasRSCParam ||
+                     xNextJSData === '1' ||
+                     nextRouterPrefetch === '1' ||
+                     nextAction === '1' ||
+                     rscHeader === '1' ||
+                     nextRouterStateTree !== null ||
+                     acceptHeader.includes('text/x-component')
   
   if (isRSCFetch) {
-    console.log('🔍 RSC fetch detected, checking authentication')
+    console.log('🔍 RSC fetch detected:', {
+      pathname: request.nextUrl.pathname,
+      search: request.nextUrl.search,
+      hasRSCParam,
+      xNextJSData,
+      nextRouterPrefetch,
+      nextAction,
+      rscHeader,
+      nextRouterStateTree,
+      acceptHeader,
+      hasAuthCookie
+    })
     
     // For RSC fetches to protected routes, we need to check if user is authenticated
     // If not authenticated, we should return a 401 or 403 instead of redirecting

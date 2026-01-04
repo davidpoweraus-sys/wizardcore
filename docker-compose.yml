@@ -250,7 +250,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: limpet/wizardcore-frontend:rsc-fix-v2
+    image: limpet/wizardcore-frontend:rsc-cors-fix
     depends_on:
       backend:
         condition: service_healthy
