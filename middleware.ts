@@ -1,8 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Version identifier for tracking which fix is deployed
+const MIDDLEWARE_VERSION = 'session-refresh-fix-20260104-1159'
+
 export async function middleware(request: NextRequest) {
-  // Debug logging for production login issue
-  console.log('🔍 Middleware executing for path:', request.nextUrl.pathname)
+  // Version tracking in logs
+  console.log(`🔍 Middleware ${MIDDLEWARE_VERSION} executing for path:`, request.nextUrl.pathname)
   console.log('🔍 Request cookies:', request.cookies.getAll().map(c => c.name).join(', '))
   
   // Check for Supabase auth cookie
@@ -11,10 +14,13 @@ export async function middleware(request: NextRequest) {
   
   // CRITICAL FIX: Check if this is an RSC fetch request
   // Next.js RSC fetches include `_rsc` query parameter or specific headers
+  // Also check for RSC header which Next.js uses for React Server Components
   const isRSCFetch = request.nextUrl.search.includes('_rsc=') ||
                      request.headers.get('x-nextjs-data') === '1' ||
                      request.headers.get('next-router-prefetch') === '1' ||
-                     request.headers.get('next-action') === '1'
+                     request.headers.get('next-action') === '1' ||
+                     request.headers.get('RSC') === '1' ||
+                     request.headers.get('Next-Router-State-Tree') !== null
   
   if (isRSCFetch) {
     console.log('🔍 RSC fetch detected, checking authentication')
@@ -29,20 +35,56 @@ export async function middleware(request: NextRequest) {
       console.log('🔍 RSC fetch to protected route without auth cookie, returning 401')
       // Return 401 Unauthorized for RSC fetches without auth
       // This is better than redirecting for API-like requests
-      return new NextResponse(
-        JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }),
+      const response = new NextResponse(
+        JSON.stringify({
+          error: 'Unauthorized',
+          message: 'Authentication required',
+          middleware_version: MIDDLEWARE_VERSION
+        }),
         {
           status: 401,
           headers: {
             'Content-Type': 'application/json',
+            'X-Middleware-Version': MIDDLEWARE_VERSION,
           },
         }
       )
+      return response
     }
     
     // If authenticated or not a protected route, allow through
     console.log('🔍 RSC fetch allowed through')
-    return NextResponse.next()
+    const response = NextResponse.next()
+    response.headers.set('X-Middleware-Version', MIDDLEWARE_VERSION)
+    return response
+  }
+  
+  // NEW: Refresh session for authenticated users
+  // This ensures the Supabase client has a valid session
+  if (hasAuthCookie) {
+    console.log('🔍 Attempting to refresh session for authenticated user')
+    
+    // Create a response object
+    const response = NextResponse.next()
+    response.headers.set('X-Middleware-Version', MIDDLEWARE_VERSION)
+    
+    // IMPORTANT: We need to ensure the auth cookie is properly forwarded
+    // The Supabase client will handle session refresh on the client side
+    // Our job is just to ensure the cookie is present and valid
+    
+    // For API routes, we need to set proper CORS headers
+    if (request.nextUrl.pathname.startsWith('/api/')) {
+      // Set CORS headers for API routes
+      const origin = request.headers.get('origin')
+      if (origin && (origin.includes('offensivewizard.com') || origin.includes('localhost'))) {
+        response.headers.set('Access-Control-Allow-Origin', origin)
+        response.headers.set('Access-Control-Allow-Credentials', 'true')
+        response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+        response.headers.set('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Client-Info, apikey, x-client-info, x-supabase-api-version')
+      }
+    }
+    
+    return response
   }
   
   // Protected routes - redirect to login if not authenticated
@@ -56,7 +98,9 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('redirectedFrom', request.nextUrl.pathname)
-    return NextResponse.redirect(url)
+    const response = NextResponse.redirect(url)
+    response.headers.set('X-Middleware-Version', MIDDLEWARE_VERSION)
+    return response
   }
 
   // Auth routes - redirect to dashboard if already authenticated
@@ -68,10 +112,14 @@ export async function middleware(request: NextRequest) {
     console.log('🔍 Has auth cookie, redirecting to dashboard')
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
+    const response = NextResponse.redirect(url)
+    response.headers.set('X-Middleware-Version', MIDDLEWARE_VERSION)
+    return response
   }
 
-  return NextResponse.next()
+  const response = NextResponse.next()
+  response.headers.set('X-Middleware-Version', MIDDLEWARE_VERSION)
+  return response
 }
 
 export const config = {

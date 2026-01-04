@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Access-Control-Expose-Headers',
-            value: 'X-NextJS-Data, X-RSC, X-Action-Redirect',
+            value: 'X-NextJS-Data, X-RSC, X-Action-Redirect, X-Middleware-Version',
           },
         ],
       },

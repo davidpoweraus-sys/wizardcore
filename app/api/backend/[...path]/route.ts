@@ -25,7 +25,18 @@ const BACKEND_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_U
  * - Specific development ports
  */
 function validateOrigin(origin: string | null): string | null {
-  if (!origin || origin === '*') {
+  // CRITICAL FIX: Allow null/empty origin for same-origin requests
+  // Same-origin requests often don't include Origin header
+  // We should allow these requests in production
+  if (!origin) {
+    // For same-origin requests (no Origin header), we need to determine
+    // if this is a valid request. Since this is our own frontend making
+    // requests to our own API, we should allow it.
+    // Return a placeholder that indicates same-origin
+    return 'same-origin'
+  }
+  
+  if (origin === '*') {
     // In production, avoid wildcard when using credentials
     if (process.env.NODE_ENV === 'production') {
       return null
@@ -78,10 +89,27 @@ export async function OPTIONS(request: NextRequest) {
     })
   }
   
+  // Handle same-origin requests
+  let corsOrigin = validatedOrigin
+  if (validatedOrigin === 'same-origin') {
+    // Determine actual origin from request
+    const referer = request.headers.get('referer')
+    if (referer) {
+      try {
+        const refererUrl = new URL(referer)
+        corsOrigin = refererUrl.origin
+      } catch {
+        corsOrigin = 'https://app.offensivewizard.com'
+      }
+    } else {
+      corsOrigin = 'https://app.offensivewizard.com'
+    }
+  }
+  
   return new NextResponse(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': validatedOrigin,
+      'Access-Control-Allow-Origin': corsOrigin,
       'Access-Control-Allow-Credentials': 'true',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Client-Info, apikey',
@@ -216,7 +244,7 @@ async function proxyRequest(request: NextRequest, path: string[]) {
           message: 'Origin not allowed',
           details: {
             origin,
-            allowed_origins: 'localhost:*, *.offensivewizard.com, offensivewizard.com'
+            allowed_origins: 'localhost:*, *.offensivewizard.com, offensivewizard.com, same-origin'
           }
         }),
         {
@@ -228,10 +256,22 @@ async function proxyRequest(request: NextRequest, path: string[]) {
       )
     }
 
+    // Handle same-origin requests
+    let corsOrigin = validatedOrigin
+    if (validatedOrigin === 'same-origin') {
+      // Determine actual origin from request
+      const host = request.headers.get('host')
+      if (host && (host.includes('offensivewizard.com') || host.includes('localhost'))) {
+        corsOrigin = `https://${host}`
+      } else {
+        corsOrigin = 'https://app.offensivewizard.com'
+      }
+    }
+
     // Return response with proper CORS headers
     const responseHeaders = new Headers()
     responseHeaders.set('Content-Type', response.headers.get('Content-Type') || 'application/json')
-    responseHeaders.set('Access-Control-Allow-Origin', validatedOrigin)
+    responseHeaders.set('Access-Control-Allow-Origin', corsOrigin)
     responseHeaders.set('Access-Control-Allow-Credentials', 'true')
     responseHeaders.set('Access-Control-Expose-Headers', 'X-Total-Count')
     
@@ -280,7 +320,17 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     errorHeaders.set('Content-Type', 'application/json')
     
     if (validatedErrorOrigin) {
-      errorHeaders.set('Access-Control-Allow-Origin', validatedErrorOrigin)
+      // Handle same-origin for error responses
+      let errorCorsOrigin = validatedErrorOrigin
+      if (validatedErrorOrigin === 'same-origin') {
+        const host = request.headers.get('host')
+        if (host && (host.includes('offensivewizard.com') || host.includes('localhost'))) {
+          errorCorsOrigin = `https://${host}`
+        } else {
+          errorCorsOrigin = 'https://app.offensivewizard.com'
+        }
+      }
+      errorHeaders.set('Access-Control-Allow-Origin', errorCorsOrigin)
       errorHeaders.set('Access-Control-Allow-Credentials', 'true')
     }
     
