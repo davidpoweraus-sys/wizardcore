@@ -21,7 +21,7 @@ const GOTRUE_URL = process.env.GOTRUE_URL || process.env.SUPABASE_INTERNAL_URL |
 
 // BLUE DIE TEST: Clear identifier for debugging login issues
 // This will appear in logs and response headers to verify the correct image is running
-const PROXY_VERSION = 'login-fix-v2-20260103-1851'
+const PROXY_VERSION = 'login-fix-v3-20260104-0747'
 
 /**
  * Validate and normalize CORS origin
@@ -173,6 +173,16 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     const baseUrl = GOTRUE_URL.endsWith('/') ? GOTRUE_URL.slice(0, -1) : GOTRUE_URL
     const targetUrl = `${baseUrl}/${targetPath}${url.search}`
 
+    // Read request body if present - DO THIS EARLY for logging
+    let body = null
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      try {
+        body = await request.text()
+      } catch (e) {
+        // Body may not exist or already consumed
+      }
+    }
+
     // Log request details for debugging - ALWAYS log in production for auth issues
     console.log('🔄 GoTrue Proxy:')
     console.log('  Method:', request.method)
@@ -189,6 +199,24 @@ async function proxyRequest(request: NextRequest, path: string[]) {
       console.log('  Has Authorization header:', authHeader.substring(0, 20) + '...')
     }
     console.log('  Has apikey header:', !!request.headers.get('apikey'))
+    
+    // Log request body for debugging login issues
+    if (targetPath === 'token' && url.search.includes('grant_type=password')) {
+      console.log('🔐 Password grant login request detected')
+      if (body) {
+        console.log('  Request body:', body)
+        try {
+          const parsedBody = JSON.parse(body)
+          console.log('  Parsed body:', JSON.stringify(parsedBody, null, 2))
+          console.log('  Has email:', !!parsedBody.email)
+          console.log('  Has password:', !!parsedBody.password)
+        } catch (e: any) {
+          console.log('  Could not parse body as JSON:', e.message)
+        }
+      } else {
+        console.log('  No request body found!')
+      }
+    }
 
     // Copy headers from incoming request
     const headers = new Headers()
@@ -225,16 +253,6 @@ async function proxyRequest(request: NextRequest, path: string[]) {
             headers.delete('cookie')
           }
         }
-      }
-    }
-
-    // Read request body if present
-    let body = null
-    if (request.method !== 'GET' && request.method !== 'HEAD') {
-      try {
-        body = await request.text()
-      } catch (e) {
-        // Body may not exist or already consumed
       }
     }
 
