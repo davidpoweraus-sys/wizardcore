@@ -64,26 +64,10 @@ export default function LoginPage() {
       
       console.log('🎲 Step 4: Redirecting to dashboard...')
       
-      // Try router.push first
-      console.log('🎲 Step 4a: Attempting router.push...')
-      try {
-        router.push('/dashboard')
-        console.log('🎲 Step 4a: Router push called successfully')
-      } catch (routerError) {
-        console.error('🎲 Step 4a: Router.push error:', routerError)
-        // Immediate fallback to window.location
-        console.log('🎲 Step 4b: Falling back to window.location.href')
-        window.location.href = '/dashboard'
-      }
-      
-      // Additional fallback after delay
-      setTimeout(() => {
-        console.log('🎲 Step 4c: Checking if still on login page...')
-        if (window.location.pathname.includes('/login')) {
-          console.log('🎲 Step 4c: Still on login page, forcing hard redirect...')
-          window.location.href = '/dashboard'
-        }
-      }, 500)
+      // CRITICAL FIX: Use window.location.href immediately to avoid Next.js RSC issues
+      // The router.push() is failing with RSC payload fetch errors
+      console.log('🎲 Step 4a: Using window.location.href (bypassing Next.js router)')
+      window.location.href = '/dashboard'
     } catch (error) {
       console.error('🎲 ERROR in post-login flow:', error)
       setError('Login successful but redirect failed: ' + (error instanceof Error ? error.message : String(error)))
