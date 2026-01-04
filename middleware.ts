@@ -1,103 +1,77 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
   // Debug logging for production login issue
   console.log('🔍 Middleware executing for path:', request.nextUrl.pathname)
-  console.log('🔍 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
   console.log('🔍 Request cookies:', request.cookies.getAll().map(c => c.name).join(', '))
   
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet: Array<{ name: string; value: string; options: CookieOptions }>) {
-          cookiesToSet.forEach(({ name, value }) => {
-            request.cookies.set(name, value)
-          })
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) => {
-            supabaseResponse.cookies.set(name, value, options)
-          })
-        },
-      },
-    }
-  )
-
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
+  // Check for Supabase auth cookie
+  const hasAuthCookie = request.cookies.has('sb-app-auth-token')
+  console.log('🔍 Has auth cookie:', hasAuthCookie)
   
-  console.log('🔍 getUser result - User:', user ? 'present' : 'absent')
-  if (error) {
-    console.log('🔍 getUser error:', error.message)
+  // CRITICAL FIX: Check if this is an RSC fetch request
+  // Next.js RSC fetches include `_rsc` query parameter or specific headers
+  const isRSCFetch = request.nextUrl.search.includes('_rsc=') ||
+                     request.headers.get('x-nextjs-data') === '1' ||
+                     request.headers.get('next-router-prefetch') === '1' ||
+                     request.headers.get('next-action') === '1'
+  
+  if (isRSCFetch) {
+    console.log('🔍 RSC fetch detected, checking authentication')
+    
+    // For RSC fetches to protected routes, we need to check if user is authenticated
+    // If not authenticated, we should return a 401 or 403 instead of redirecting
+    // This allows the client to handle the authentication error properly
+    const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard') ||
+                             request.nextUrl.pathname.startsWith('/profile')
+    
+    if (isProtectedRoute && !hasAuthCookie) {
+      console.log('🔍 RSC fetch to protected route without auth cookie, returning 401')
+      // Return 401 Unauthorized for RSC fetches without auth
+      // This is better than redirecting for API-like requests
+      return new NextResponse(
+        JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }),
+        {
+          status: 401,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+    }
+    
+    // If authenticated or not a protected route, allow through
+    console.log('🔍 RSC fetch allowed through')
+    return NextResponse.next()
   }
-
+  
   // Protected routes - redirect to login if not authenticated
   if (
-    !user &&
+    !hasAuthCookie &&
     (request.nextUrl.pathname.startsWith('/dashboard') ||
       request.nextUrl.pathname.startsWith('/profile'))
   ) {
+    console.log('🔍 No auth cookie, redirecting to login')
     // Redirect to login page
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('redirectedFrom', request.nextUrl.pathname)
-    
-    // Create redirect response and copy cookies from supabaseResponse
-    const redirectResponse = NextResponse.redirect(url)
-    supabaseResponse.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie)
-    })
-    return redirectResponse
+    return NextResponse.redirect(url)
   }
 
   // Auth routes - redirect to dashboard if already authenticated
   if (
-    user &&
+    hasAuthCookie &&
     (request.nextUrl.pathname.startsWith('/login') ||
       request.nextUrl.pathname.startsWith('/register'))
   ) {
+    console.log('🔍 Has auth cookie, redirecting to dashboard')
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
-    
-    // Create redirect response and copy cookies from supabaseResponse
-    const redirectResponse = NextResponse.redirect(url)
-    supabaseResponse.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie)
-    })
-    return redirectResponse
+    return NextResponse.redirect(url)
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
-  // If you're creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
-
-  return supabaseResponse
+  return NextResponse.next()
 }
 
 export const config = {
