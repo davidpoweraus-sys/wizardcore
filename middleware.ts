@@ -2,6 +2,11 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
+  // Debug logging for production login issue
+  console.log('🔍 Middleware executing for path:', request.nextUrl.pathname)
+  console.log('🔍 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+  console.log('🔍 Request cookies:', request.cookies.getAll().map(c => c.name).join(', '))
+  
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -35,7 +40,13 @@ export async function middleware(request: NextRequest) {
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser()
+  
+  console.log('🔍 getUser result - User:', user ? 'present' : 'absent')
+  if (error) {
+    console.log('🔍 getUser error:', error.message)
+  }
 
   // Protected routes - redirect to login if not authenticated
   if (
@@ -47,7 +58,13 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('redirectedFrom', request.nextUrl.pathname)
-    return NextResponse.redirect(url)
+    
+    // Create redirect response and copy cookies from supabaseResponse
+    const redirectResponse = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie)
+    })
+    return redirectResponse
   }
 
   // Auth routes - redirect to dashboard if already authenticated
@@ -58,7 +75,13 @@ export async function middleware(request: NextRequest) {
   ) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
+    
+    // Create redirect response and copy cookies from supabaseResponse
+    const redirectResponse = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie)
+    })
+    return redirectResponse
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.

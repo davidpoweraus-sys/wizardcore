@@ -39,6 +39,16 @@ export default function LoginPage() {
     }
 
     console.log('🎲 BLUE DIE TEST - Login successful')
+    
+    // CRITICAL FIX: Wait a moment for cookies to be set before redirecting
+    // This fixes the race condition where middleware doesn't see the auth cookie
+    console.log('🎲 Waiting 100ms for cookie propagation...')
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    // Also refresh the session to ensure cookies are properly set
+    const { data: { session } } = await supabase.auth.getSession()
+    console.log('🎲 Session after login:', session ? 'present' : 'absent')
+    
     router.push('/dashboard')
   }
 
