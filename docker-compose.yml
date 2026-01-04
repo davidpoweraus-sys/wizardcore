@@ -303,7 +303,7 @@ services:
     restart: unless-stopped
 
   judge0-redis:
-    image: redis:7.2-alpine
+    image: redis:7-alpine
     volumes:
       - judge0_redis_data:/data
     networks:
