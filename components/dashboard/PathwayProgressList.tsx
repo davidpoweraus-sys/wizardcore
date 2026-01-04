@@ -29,7 +29,8 @@ export default function PathwayProgressList() {
     async function fetchPathways() {
       try {
         const data = await api.get<ProgressResponse>('/users/me/progress')
-        setPathways(data.pathways)
+        // Handle null or undefined pathways
+        setPathways(data.pathways || [])
       } catch (err: any) {
         console.error('Failed to fetch pathway progress:', err)
         setError(err.message || 'Failed to load pathways')

@@ -31,11 +31,12 @@ export default function ProgressChart() {
     async function fetchWeeklyActivity() {
       try {
         const data = await api.get<WeeklyActivity>('/users/me/activity/weekly')
-        setWeeklyData(data.weekly_data)
-        setAvgDailyTime(data.avg_daily_time_minutes)
-        setCompletionRate(data.completion_rate)
-        setCurrentStreak(data.current_streak)
-        setTrendPercentage(data.trend_percentage)
+        // Handle null or undefined weekly_data
+        setWeeklyData(data.weekly_data || [])
+        setAvgDailyTime(data.avg_daily_time_minutes || 0)
+        setCompletionRate(data.completion_rate || 0)
+        setCurrentStreak(data.current_streak || 0)
+        setTrendPercentage(data.trend_percentage || 0)
       } catch (err: any) {
         console.error('Failed to fetch weekly activity:', err)
         setError(err.message || 'Failed to load weekly activity')
@@ -46,7 +47,7 @@ export default function ProgressChart() {
     fetchWeeklyActivity()
   }, [])
 
-  const maxValue = weeklyData.length > 0 ? Math.max(...weeklyData.map(d => d.value)) : 100
+  const maxValue = weeklyData && weeklyData.length > 0 ? Math.max(...weeklyData.map(d => d.value)) : 100
 
   if (loading) {
     return (

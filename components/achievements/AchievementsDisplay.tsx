@@ -59,12 +59,14 @@ export default function AchievementsDisplay() {
       
       // Fetch achievements
       const achievementsResponse = await api.get<{ achievements: Achievement[] }>('/users/me/achievements')
-      setAchievements(achievementsResponse.achievements)
+      // Handle null achievements from API
+      const achievements = achievementsResponse.achievements || []
+      setAchievements(achievements)
       
       // Calculate stats
-      const earnedCount = achievementsResponse.achievements.filter(a => a.earned).length
-      const totalCount = achievementsResponse.achievements.length
-      const totalXP = achievementsResponse.achievements
+      const earnedCount = achievements.filter(a => a.earned).length
+      const totalCount = achievements.length
+      const totalXP = achievements
         .filter(a => a.earned)
         .reduce((sum, a) => sum + a.xp_reward, 0)
       

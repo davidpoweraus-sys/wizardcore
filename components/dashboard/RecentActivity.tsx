@@ -41,7 +41,8 @@ export default function RecentActivity() {
     async function fetchActivities() {
       try {
         const data = await api.get<{ activities: Activity[] }>('/users/me/activities')
-        setActivities(data.activities)
+        // Handle null or undefined activities
+        setActivities(data.activities || [])
       } catch (err: any) {
         console.error('Failed to fetch activities:', err)
         setError(err.message || 'Failed to load activities')
