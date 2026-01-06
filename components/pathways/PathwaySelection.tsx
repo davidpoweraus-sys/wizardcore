@@ -45,7 +45,7 @@ export default function PathwaySelection() {
       setLoading(true)
       setError(null)
       const data = await api.get<{ pathways: Pathway[] }>('/pathways')
-      setPathways(data.pathways)
+      setPathways(data.pathways || [])
     } catch (err: any) {
       console.error('Failed to fetch pathways:', err)
       setError(err.message || 'Failed to load pathways')
