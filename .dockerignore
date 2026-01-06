@@ -20,3 +20,4 @@ nginx-config/
 public/templates/
 test.env
 *.bak
+tsconfig.tsbuildinfo
