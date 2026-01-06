@@ -28,11 +28,11 @@ func (r *PathwayRepository) FindAll() ([]models.Pathway, error) {
 	`
 	rows, err := r.db.Query(query)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query pathways: %w", err)
+		return []models.Pathway{}, fmt.Errorf("failed to query pathways: %w", err)
 	}
 	defer rows.Close()
 
-	var pathways []models.Pathway
+	pathways := make([]models.Pathway, 0)
 	for rows.Next() {
 		var p models.Pathway
 		var subtitle, description, colorGradient, icon sql.NullString
@@ -56,7 +56,7 @@ func (r *PathwayRepository) FindAll() ([]models.Pathway, error) {
 			&p.UpdatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan pathway: %w", err)
+			return []models.Pathway{}, fmt.Errorf("failed to scan pathway: %w", err)
 		}
 		if subtitle.Valid {
 			p.Subtitle = &subtitle.String
@@ -74,14 +74,14 @@ func (r *PathwayRepository) FindAll() ([]models.Pathway, error) {
 		pathways = append(pathways, p)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating pathways rows: %w", err)
+		return []models.Pathway{}, fmt.Errorf("error iterating pathways rows: %w", err)
 	}
 	return pathways, nil
 }
 
 func (r *PathwayRepository) FindAllWithEnrollment(userID uuid.UUID) ([]models.PathwayWithEnrollment, error) {
 	query := `
-		SELECT 
+		SELECT
 			p.id, p.title, p.subtitle, p.description, p.level, p.duration_weeks,
 			p.student_count, p.rating, p.module_count, p.color_gradient, p.icon,
 			p.is_locked, p.sort_order, p.prerequisites, p.created_at, p.updated_at,
@@ -93,11 +93,11 @@ func (r *PathwayRepository) FindAllWithEnrollment(userID uuid.UUID) ([]models.Pa
 	`
 	rows, err := r.db.Query(query, userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query pathways with enrollment: %w", err)
+		return []models.PathwayWithEnrollment{}, fmt.Errorf("failed to query pathways with enrollment: %w", err)
 	}
 	defer rows.Close()
 
-	var pathways []models.PathwayWithEnrollment
+	pathways := make([]models.PathwayWithEnrollment, 0)
 	for rows.Next() {
 		var p models.PathwayWithEnrollment
 		var subtitle, description, colorGradient, icon sql.NullString
@@ -123,7 +123,7 @@ func (r *PathwayRepository) FindAllWithEnrollment(userID uuid.UUID) ([]models.Pa
 			&p.Progress,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan pathway with enrollment: %w", err)
+			return []models.PathwayWithEnrollment{}, fmt.Errorf("failed to scan pathway with enrollment: %w", err)
 		}
 		if subtitle.Valid {
 			p.Subtitle = &subtitle.String
@@ -141,7 +141,7 @@ func (r *PathwayRepository) FindAllWithEnrollment(userID uuid.UUID) ([]models.Pa
 		pathways = append(pathways, p)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating pathways rows: %w", err)
+		return []models.PathwayWithEnrollment{}, fmt.Errorf("error iterating pathways rows: %w", err)
 	}
 	return pathways, nil
 }
@@ -207,11 +207,11 @@ func (r *PathwayRepository) FindEnrollmentsByUserID(userID uuid.UUID) ([]models.
 	`
 	rows, err := r.db.Query(query, userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query enrollments: %w", err)
+		return []models.UserPathwayEnrollment{}, fmt.Errorf("failed to query enrollments: %w", err)
 	}
 	defer rows.Close()
 
-	var enrollments []models.UserPathwayEnrollment
+	enrollments := make([]models.UserPathwayEnrollment, 0)
 	for rows.Next() {
 		var e models.UserPathwayEnrollment
 		var lastActivityAt, completedAt sql.NullTime
@@ -228,7 +228,7 @@ func (r *PathwayRepository) FindEnrollmentsByUserID(userID uuid.UUID) ([]models.
 			&completedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan enrollment: %w", err)
+			return []models.UserPathwayEnrollment{}, fmt.Errorf("failed to scan enrollment: %w", err)
 		}
 		if lastActivityAt.Valid {
 			e.LastActivityAt = &lastActivityAt.Time
@@ -239,7 +239,7 @@ func (r *PathwayRepository) FindEnrollmentsByUserID(userID uuid.UUID) ([]models.
 		enrollments = append(enrollments, e)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating enrollment rows: %w", err)
+		return []models.UserPathwayEnrollment{}, fmt.Errorf("error iterating enrollment rows: %w", err)
 	}
 	return enrollments, nil
 }

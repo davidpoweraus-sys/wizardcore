@@ -26,11 +26,11 @@ func (r *AchievementRepository) FindAll() ([]models.Achievement, error) {
 	`
 	rows, err := r.db.Query(query)
 	if err != nil {
-		return nil, err
+		return []models.Achievement{}, err
 	}
 	defer rows.Close()
 
-	var achievements []models.Achievement
+	achievements := make([]models.Achievement, 0)
 	for rows.Next() {
 		var a models.Achievement
 		var criteriaValue sql.NullInt64
@@ -51,7 +51,7 @@ func (r *AchievementRepository) FindAll() ([]models.Achievement, error) {
 			&a.CreatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return []models.Achievement{}, err
 		}
 		if criteriaValue.Valid {
 			val := int(criteriaValue.Int64)
@@ -117,7 +117,7 @@ func (r *AchievementRepository) GetUserAchievements(userID uuid.UUID) ([]models.
 	// Get all achievements
 	allAchievements, err := r.FindAll()
 	if err != nil {
-		return nil, err
+		return []models.AchievementWithProgress{}, err
 	}
 
 	// Get user's earned achievements
@@ -128,7 +128,7 @@ func (r *AchievementRepository) GetUserAchievements(userID uuid.UUID) ([]models.
 	`
 	rows, err := r.db.Query(query, userID)
 	if err != nil {
-		return nil, err
+		return []models.AchievementWithProgress{}, err
 	}
 	defer rows.Close()
 
@@ -142,7 +142,7 @@ func (r *AchievementRepository) GetUserAchievements(userID uuid.UUID) ([]models.
 		var earnedAt sql.NullTime
 		err := rows.Scan(&achievementID, &progress, &earnedAt)
 		if err != nil {
-			return nil, err
+			return []models.AchievementWithProgress{}, err
 		}
 		var earnedTime *time.Time
 		if earnedAt.Valid {
@@ -155,7 +155,7 @@ func (r *AchievementRepository) GetUserAchievements(userID uuid.UUID) ([]models.
 	}
 
 	// Combine
-	var result []models.AchievementWithProgress
+	result := make([]models.AchievementWithProgress, 0, len(allAchievements))
 	for _, a := range allAchievements {
 		awp := models.AchievementWithProgress{
 			Achievement: a,
