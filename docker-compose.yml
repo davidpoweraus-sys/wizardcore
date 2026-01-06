@@ -250,7 +250,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: limpet/wizardcore-frontend:null-fix
+    image: limpet/wizardcore-frontend:latest
     depends_on:
       backend:
         condition: service_healthy
