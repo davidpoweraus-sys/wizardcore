@@ -1,146 +1,118 @@
-import { NextResponse, type NextRequest } from 'next/server'
+/**
+ * Refactored Middleware
+ * Addressing problems 4, 5, 6, 9, 10, 11
+ * 
+ * Problem 4: Overly Complex RSC Detection - Simplified
+ * Problem 5: Inconsistent Error Handling - Standardized
+ * Problem 6: Session Refresh Logic is Misplaced - Separated
+ * Problem 9: Magic Strings - Extracted to constants
+ * Problem 10: Missing Type Safety - Added TypeScript interfaces
+ * Problem 11: Logic Duplication - Extracted to helper functions
+ */
 
-// Version identifier for tracking which fix is deployed
-const MIDDLEWARE_VERSION = 'rsc-fix-20260104-1315'
+import { NextRequest } from 'next/server'
+import {
+  analyzeRequest,
+  shouldExcludeFromMiddleware,
+  logMiddlewareEvent
+} from '@/lib/middleware/helpers'
+import {
+  handleProtectedRoute,
+  handleAuthRoute,
+  handleApiRoute
+} from '@/lib/middleware/response-factory'
+import { MiddlewareResponseFactory } from '@/lib/middleware/response-factory'
 
 export async function middleware(request: NextRequest) {
-  // Version tracking in logs
-  console.log(`🔍 Middleware ${MIDDLEWARE_VERSION} executing for path:`, request.nextUrl.pathname)
-  console.log('🔍 Request cookies:', request.cookies.getAll().map(c => c.name).join(', '))
+  const pathname = request.nextUrl.pathname
   
-  // Check for Supabase auth cookie
-  const hasAuthCookie = request.cookies.has('sb-app-auth-token')
-  console.log('🔍 Has auth cookie:', hasAuthCookie)
-  
-  // CRITICAL FIX: Check if this is an RSC fetch request
-  // Next.js RSC fetches include `_rsc` query parameter or specific headers
-  // Also check for RSC header which Next.js uses for React Server Components
-  // IMPORTANT: Also check for Accept header containing 'text/x-component'
-  const acceptHeader = request.headers.get('accept') || ''
-  const hasRSCParam = request.nextUrl.search.includes('_rsc=')
-  const xNextJSData = request.headers.get('x-nextjs-data')
-  const nextRouterPrefetch = request.headers.get('next-router-prefetch')
-  const nextAction = request.headers.get('next-action')
-  const rscHeader = request.headers.get('RSC')
-  const nextRouterStateTree = request.headers.get('Next-Router-State-Tree')
-  
-  const isRSCFetch = hasRSCParam ||
-                     xNextJSData === '1' ||
-                     nextRouterPrefetch === '1' ||
-                     nextAction === '1' ||
-                     rscHeader === '1' ||
-                     nextRouterStateTree !== null ||
-                     acceptHeader.includes('text/x-component')
-  
-  if (isRSCFetch) {
-    console.log('🔍 RSC fetch detected:', {
-      pathname: request.nextUrl.pathname,
-      search: request.nextUrl.search,
-      hasRSCParam,
-      xNextJSData,
-      nextRouterPrefetch,
-      nextAction,
-      rscHeader,
-      nextRouterStateTree,
-      acceptHeader,
-      hasAuthCookie
-    })
-    
-    // For RSC fetches to protected routes, we need to check if user is authenticated
-    // If not authenticated, we should return a 401 or 403 instead of redirecting
-    // This allows the client to handle the authentication error properly
-    const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard') ||
-                             request.nextUrl.pathname.startsWith('/profile')
-    
-    if (isProtectedRoute && !hasAuthCookie) {
-      console.log('🔍 RSC fetch to protected route without auth cookie, returning 401')
-      // Return 401 Unauthorized for RSC fetches without auth
-      // This is better than redirecting for API-like requests
-      const response = new NextResponse(
-        JSON.stringify({
-          error: 'Unauthorized',
-          message: 'Authentication required',
-          middleware_version: MIDDLEWARE_VERSION
-        }),
-        {
-          status: 401,
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Middleware-Version': MIDDLEWARE_VERSION,
-          },
-        }
-      )
-      return response
-    }
-    
-    // If authenticated or not a protected route, allow through
-    console.log('🔍 RSC fetch allowed through')
-    const response = NextResponse.next()
-    response.headers.set('X-Middleware-Version', MIDDLEWARE_VERSION)
-    return response
+  // Skip middleware for excluded paths (static files, etc.)
+  if (shouldExcludeFromMiddleware(pathname)) {
+    logMiddlewareEvent('path-excluded', { pathname }, 'debug')
+    return MiddlewareResponseFactory.createNextResponse(request)
   }
   
-  // NEW: Refresh session for authenticated users
-  // This ensures the Supabase client has a valid session
-  if (hasAuthCookie) {
-    console.log('🔍 Attempting to refresh session for authenticated user')
+  try {
+    // Analyze the request
+    const analysis = analyzeRequest(request)
     
-    // Create a response object
-    const response = NextResponse.next()
-    response.headers.set('X-Middleware-Version', MIDDLEWARE_VERSION)
+    logMiddlewareEvent('request-analyzed', {
+      pathname,
+      isProtected: analysis.route.isProtected,
+      isAuthRoute: analysis.route.isAuthRoute,
+      isApiRoute: analysis.route.isApiRoute,
+      hasAuthCookie: analysis.auth.hasAuthCookie,
+      isRSCRequest: analysis.rsc.isRSCRequest
+    }, 'debug')
     
-    // IMPORTANT: We need to ensure the auth cookie is properly forwarded
-    // The Supabase client will handle session refresh on the client side
-    // Our job is just to ensure the cookie is present and valid
-    
-    // For API routes, we need to set proper CORS headers
-    if (request.nextUrl.pathname.startsWith('/api/')) {
-      // Set CORS headers for API routes
-      const origin = request.headers.get('origin')
-      if (origin && (origin.includes('offensivewizard.com') || origin.includes('localhost'))) {
-        response.headers.set('Access-Control-Allow-Origin', origin)
-        response.headers.set('Access-Control-Allow-Credentials', 'true')
-        response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-        response.headers.set('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Client-Info, apikey, x-client-info, x-supabase-api-version')
+    // Handle protected routes (require authentication)
+    if (analysis.route.isProtected) {
+      const protectedResponse = handleProtectedRoute(
+        request,
+        analysis.auth.hasAuthCookie,
+        analysis.rsc.isRSCRequest
+      )
+      
+      if (protectedResponse) {
+        logMiddlewareEvent('protected-route-handled', {
+          pathname,
+          action: 'redirect-or-deny'
+        }, 'info')
+        return protectedResponse
       }
     }
     
+    // Handle auth routes (redirect authenticated users)
+    if (analysis.route.isAuthRoute) {
+      const authRouteResponse = handleAuthRoute(
+        request,
+        analysis.auth.hasAuthCookie
+      )
+      
+      if (authRouteResponse) {
+        logMiddlewareEvent('auth-route-handled', {
+          pathname,
+          action: 'redirect-to-dashboard'
+        }, 'info')
+        return authRouteResponse
+      }
+    }
+    
+    // Create base response
+    let response = MiddlewareResponseFactory.createNextResponse(request)
+    
+    // Handle API routes (add CORS headers)
+    if (analysis.route.isApiRoute) {
+      response = handleApiRoute(request, response)
+      logMiddlewareEvent('api-route-handled', { pathname }, 'debug')
+    }
+    
+    // Log successful request handling
+    logMiddlewareEvent('request-completed', {
+      pathname,
+      status: 'allowed'
+    }, 'info')
+    
     return response
+    
+  } catch (error) {
+    // Handle middleware errors gracefully
+    logMiddlewareEvent('middleware-error', {
+      pathname,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    }, 'error')
+    
+    // Don't block requests on middleware errors in production
+    if (process.env.NODE_ENV === 'production') {
+      return MiddlewareResponseFactory.createNextResponse(request)
+    } else {
+      return MiddlewareResponseFactory.createInternalErrorResponse(
+        request,
+        error instanceof Error ? error : undefined
+      )
+    }
   }
-  
-  // Protected routes - redirect to login if not authenticated
-  if (
-    !hasAuthCookie &&
-    (request.nextUrl.pathname.startsWith('/dashboard') ||
-      request.nextUrl.pathname.startsWith('/profile'))
-  ) {
-    console.log('🔍 No auth cookie, redirecting to login')
-    // Redirect to login page
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    url.searchParams.set('redirectedFrom', request.nextUrl.pathname)
-    const response = NextResponse.redirect(url)
-    response.headers.set('X-Middleware-Version', MIDDLEWARE_VERSION)
-    return response
-  }
-
-  // Auth routes - redirect to dashboard if already authenticated
-  if (
-    hasAuthCookie &&
-    (request.nextUrl.pathname.startsWith('/login') ||
-      request.nextUrl.pathname.startsWith('/register'))
-  ) {
-    console.log('🔍 Has auth cookie, redirecting to dashboard')
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    const response = NextResponse.redirect(url)
-    response.headers.set('X-Middleware-Version', MIDDLEWARE_VERSION)
-    return response
-  }
-
-  const response = NextResponse.next()
-  response.headers.set('X-Middleware-Version', MIDDLEWARE_VERSION)
-  return response
 }
 
 export const config = {
