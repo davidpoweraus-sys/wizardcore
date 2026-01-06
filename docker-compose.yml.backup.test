@@ -222,8 +222,8 @@ services:
 
   backend:
     build:
-      context: ./wizardcore-backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: wizardcore-backend/Dockerfile
     image: wizardcore-backend:${BUILD_TAG:-latest}
     depends_on:
       postgres:
