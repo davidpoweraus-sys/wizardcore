@@ -8,6 +8,7 @@ import (
 	"github.com/yourusername/wizardcore-backend/internal/middleware"
 	"github.com/yourusername/wizardcore-backend/internal/models"
 	"github.com/yourusername/wizardcore-backend/internal/services"
+	"github.com/yourusername/wizardcore-backend/internal/version"
 	"go.uber.org/zap"
 )
 
@@ -186,9 +187,26 @@ func (h *UserHandler) GetStats(c *gin.Context) {
 		return
 	}
 
+	// Log version and timing information
+	versionInfo := version.GetInfo()
+	h.logger.Info("GetStats request",
+		zap.String("supabase_user_id", supabaseUserID.String()),
+		zap.String("path", c.Request.URL.Path),
+		zap.String("method", c.Request.Method),
+		zap.String("user_agent", c.Request.UserAgent()),
+		zap.String("version", versionInfo.Version),
+		zap.String("build_time", versionInfo.BuildTime),
+		zap.Time("timestamp", time.Now()),
+	)
+
 	user, err := h.userService.GetUserBySupabaseUserID(supabaseUserID)
 	if err != nil {
-		h.logger.Error("Failed to fetch user", zap.Error(err))
+		h.logger.Error("Failed to fetch user",
+			zap.String("supabase_user_id", supabaseUserID.String()),
+			zap.Error(err),
+			zap.String("version", versionInfo.Version),
+			zap.String("error_type", "user_not_found"),
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user"})
 		return
 	}
@@ -228,9 +246,26 @@ func (h *UserHandler) GetActivities(c *gin.Context) {
 		return
 	}
 
+	// Log version and timing information
+	versionInfo := version.GetInfo()
+	h.logger.Info("GetActivities request",
+		zap.String("supabase_user_id", supabaseUserID.String()),
+		zap.String("path", c.Request.URL.Path),
+		zap.String("method", c.Request.Method),
+		zap.String("user_agent", c.Request.UserAgent()),
+		zap.String("version", versionInfo.Version),
+		zap.String("build_time", versionInfo.BuildTime),
+		zap.Time("timestamp", time.Now()),
+	)
+
 	user, err := h.userService.GetUserBySupabaseUserID(supabaseUserID)
 	if err != nil {
-		h.logger.Error("Failed to fetch user", zap.Error(err))
+		h.logger.Error("Failed to fetch user",
+			zap.String("supabase_user_id", supabaseUserID.String()),
+			zap.Error(err),
+			zap.String("version", versionInfo.Version),
+			zap.String("error_type", "user_not_found"),
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user"})
 		return
 	}

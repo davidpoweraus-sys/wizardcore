@@ -1,7 +1,8 @@
 # Build stage
 FROM golang:1.24-alpine AS builder
 
-# Cache busting argument
+# Build arguments for version and cache busting
+ARG BUILD_TIMESTAMP=unknown
 ARG CACHE_BUST=1
 
 WORKDIR /app
@@ -13,9 +14,14 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build the application (with cache busting)
-RUN echo "Cache bust: ${CACHE_BUST}" && \
+# Build the application with version information
+RUN echo "Build timestamp: ${BUILD_TIMESTAMP}" && \
+    echo "Cache bust: ${CACHE_BUST}" && \
     CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/api
+
+# Create version file with build info
+RUN echo "BUILD_TIMESTAMP=${BUILD_TIMESTAMP}" > /app/.build-info && \
+    echo "GO_VERSION=$(go version)" >> /app/.build-info
 
 # Runtime stage
 FROM alpine:latest

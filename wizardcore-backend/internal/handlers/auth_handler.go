@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/yourusername/wizardcore-backend/internal/models"
 	"github.com/yourusername/wizardcore-backend/internal/services"
+	"github.com/yourusername/wizardcore-backend/internal/version"
 	"go.uber.org/zap"
 )
 
@@ -29,6 +31,20 @@ func (h *AuthHandler) CreateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
+
+	// Log version and timing information
+	versionInfo := version.GetInfo()
+	h.logger.Info("CreateUser request",
+		zap.String("supabase_user_id", req.SupabaseUserID.String()),
+		zap.String("email", req.Email),
+		zap.String("display_name", req.DisplayName),
+		zap.String("path", c.Request.URL.Path),
+		zap.String("method", c.Request.Method),
+		zap.String("user_agent", c.Request.UserAgent()),
+		zap.String("version", versionInfo.Version),
+		zap.String("build_time", versionInfo.BuildTime),
+		zap.String("client_ip", c.ClientIP()),
+	)
 
 	// Validate required fields
 	if req.SupabaseUserID == uuid.Nil {
@@ -53,10 +69,23 @@ func (h *AuthHandler) CreateUser(c *gin.Context) {
 
 	// Create user
 	if err := h.userService.CreateUser(user); err != nil {
-		h.logger.Error("Failed to create user", zap.Error(err))
+		h.logger.Error("Failed to create user",
+			zap.String("supabase_user_id", req.SupabaseUserID.String()),
+			zap.String("email", req.Email),
+			zap.Error(err),
+			zap.String("version", versionInfo.Version),
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}
+
+	h.logger.Info("User created successfully",
+		zap.String("supabase_user_id", req.SupabaseUserID.String()),
+		zap.String("email", req.Email),
+		zap.String("user_id", user.ID.String()),
+		zap.String("version", versionInfo.Version),
+		zap.Time("created_at", time.Now()),
+	)
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "User created successfully",

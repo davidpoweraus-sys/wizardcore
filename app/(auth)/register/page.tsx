@@ -66,10 +66,13 @@ export default function RegisterPage() {
       console.log('👤 User:', data.user)
       console.log('🎫 Session:', data.session)
 
-      // Create user in wizardcore database
+      // Create user in wizardcore database - WAIT for this to complete before redirecting
       if (data.user) {
         try {
           console.log('📤 Creating user in wizardcore database...')
+          console.log('⏱️ Starting user creation at:', new Date().toISOString())
+          console.log('🔑 Supabase User ID:', data.user.id)
+          
           // Use proxy route instead of direct backend API call to avoid CORS issues
           const response = await fetch('/api/backend/v1/users', {
             method: 'POST',
@@ -85,17 +88,33 @@ export default function RegisterPage() {
           })
 
           if (!response.ok) {
-            console.error('⚠️ Failed to create user in wizardcore database:', await response.text())
-            // Continue anyway - user can still use the app, data will be missing
+            const errorText = await response.text()
+            console.error('⚠️ Failed to create user in wizardcore database:', errorText)
+            console.error('📊 Response status:', response.status)
+            console.error('📊 Response headers:', Object.fromEntries(response.headers.entries()))
+            
+            // Check if user already exists (409 Conflict)
+            if (response.status === 409) {
+              console.log('✅ User already exists in wizardcore database')
+            } else {
+              console.warn('⚠️ Continuing despite user creation failure - user may experience missing data')
+            }
           } else {
+            const result = await response.json()
             console.log('✅ User created in wizardcore database')
+            console.log('📊 Backend response:', result)
+            console.log('⏱️ User creation completed at:', new Date().toISOString())
           }
         } catch (err) {
           console.error('⚠️ Error creating user in wizardcore database:', err)
-          // Continue anyway
+          console.warn('⚠️ Continuing despite error - user may experience missing data')
         }
+      } else {
+        console.warn('⚠️ No user data returned from Supabase')
       }
       
+      console.log('🚀 Redirecting to dashboard...')
+      console.log('⏱️ Redirect time:', new Date().toISOString())
       router.push('/dashboard?registered=true')
     } catch (err) {
       console.error('💥 Unexpected error during registration:', err)

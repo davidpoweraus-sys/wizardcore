@@ -13,6 +13,7 @@ import (
 	"github.com/yourusername/wizardcore-backend/internal/config"
 	"github.com/yourusername/wizardcore-backend/internal/database"
 	"github.com/yourusername/wizardcore-backend/internal/router"
+	"github.com/yourusername/wizardcore-backend/internal/version"
 	"github.com/yourusername/wizardcore-backend/internal/websocket"
 
 	"github.com/joho/godotenv"
@@ -72,7 +73,16 @@ func main() {
 
 	// Start server in a goroutine
 	go func() {
-		logger.Info("Starting server", zap.Int("port", cfg.Port))
+		versionInfo := version.GetInfo()
+		logger.Info("Starting server",
+			zap.Int("port", cfg.Port),
+			zap.String("version", versionInfo.Version),
+			zap.String("build_time", versionInfo.BuildTime),
+			zap.String("git_commit", versionInfo.GitCommit),
+			zap.String("environment", cfg.Environment),
+			zap.String("database_url", cfg.DatabaseURL),
+			zap.Time("start_time", time.Now()),
+		)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Fatal("Server failed to start", zap.Error(err))
 		}

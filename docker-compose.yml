@@ -221,7 +221,7 @@ services:
     restart: on-failure
 
   backend:
-    image: limpet/wizardcore-backend:latest
+    image: wizardcore-backend:local
     depends_on:
       postgres:
         condition: service_healthy
@@ -250,8 +250,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: limpet/wizardcore-frontend:null-fix-20260106-054743
-    pull_policy: always
+    image: wizardcore-frontend:local
     depends_on:
       backend:
         condition: service_healthy
