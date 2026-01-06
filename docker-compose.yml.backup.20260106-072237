@@ -221,10 +221,7 @@ services:
     restart: on-failure
 
   backend:
-    build:
-      context: .
-      dockerfile: wizardcore-backend/Dockerfile
-    image: wizardcore-backend:${BUILD_TAG:-latest}
+    image: wizardcore-backend:local
     depends_on:
       postgres:
         condition: service_healthy
@@ -253,10 +250,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.nextjs
-    image: wizardcore-frontend:${BUILD_TAG:-latest}
+    image: wizardcore-frontend:local
     depends_on:
       backend:
         condition: service_healthy
